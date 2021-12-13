@@ -1,0 +1,33 @@
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useCheckout } from '../src/hooks/useCheckout';
+
+const mockedUsedNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...(jest.requireActual('react-router-dom') as any),
+  useNavigate: () => mockedUsedNavigate,
+}));
+
+describe('subscription', () => {
+  test('can subscribe as a user', () => {
+    const { result } = renderHook(() => useCheckout());
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBe(null);
+
+    //   act(() => {
+    //     // Assume we expect this to pass
+    //     result.current.trigger({
+    //       // https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-subscriptions/functions/src/index.ts#L96-L116
+    //       mode: 'subscription',
+    //       quantity: 10000,
+    //     });
+    //   });
+
+    // expect(user.subscribed).toBe(true);
+  });
+
+  // test('cannot subscribe if already a subscribed user', () => {
+  //   expect(3).toBe(3);
+  // });
+});
