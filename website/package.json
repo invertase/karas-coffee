@@ -27,7 +27,6 @@
     "firebase-admin": "^10.0.0",
     "formik": "^2.2.9",
     "history": "^5.0.1",
-    "jest": "^27.4.4",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-instantsearch-dom": "^6.12.1",
@@ -49,8 +48,9 @@
     "postcss": "^8.3.6",
     "rimraf": "^3.0.2",
     "tailwindcss": "^2.2.9",
-    "ts-jest": "^27.1.1",
+    "ts-jest": "^24.1.0",
     "typescript": "^4.4.3",
-    "vite": "^2.6.1"
+    "vite": "^2.6.1",
+    "jest": "^24.9.0"
   }
 }

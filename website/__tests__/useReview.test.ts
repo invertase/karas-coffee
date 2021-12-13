@@ -18,12 +18,15 @@ const reviewCollection = admin.firestore().collection(reviews);
 
 describe('test useProducts hook', () => {
   test('test if useProducts return products data', async () => {
-    const doc = await reviewCollection.add({
+    await reviewCollection.add({
       created_at: 'December 13, 2021 at 1:16:23 PM UTC',
       message: 'This is good coffeeeee',
       product_id: 'chipinga',
       rating: 5,
     });
+
+    return Promise.resolve();
+
     // const { result, waitFor } = renderHook(() =>
     //   useProducts(['homepage', 'coffee'], [limit(4), where('metadata.type', '==', 'coffee')]),
     // );
