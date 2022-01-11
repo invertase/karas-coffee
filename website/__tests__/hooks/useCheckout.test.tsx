@@ -1,11 +1,11 @@
-import admin from 'firebase-admin';
-import axios from 'axios';
-import * as React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useCheckout } from '../src/hooks/useCheckout';
+import * as React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { testUser, stripePayment } from './mocks';
+import { useCheckout } from '../../src/hooks/useCheckout';
+import { testUser } from '../mocks';
+
+import admin from 'firebase-admin';
 
 admin.initializeApp({
   projectId: 'demo-testing-app',
@@ -26,23 +26,22 @@ process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
 
 const db = admin.firestore();
 let docId: string | null;
-let stripeId: string | null;
 
-jest.mock('../src/hooks/useUser', () => {
+jest.mock('../../src/hooks/useUser', () => {
   return {
     useUser: jest.fn(() => ({ ...testUser(docId) })),
   };
 });
 
-describe('webHooks', () => {
+describe('useCheckout with authenitcation', () => {
   beforeEach(() => {
     docId = (Math.random() + 1).toString(36).substring(7);
-    stripeId = `stripe_${(Math.random() + 1).toString(36).substring(7)}`;
   });
-  test('will confirm a successful payment', async () => {
+
+  test('will redirect to the order page on successful payment', async () => {
     const customerCollection = db.collection('customers');
     const customerDoc = customerCollection.doc(docId || '');
-    await customerDoc.set({ stripeId });
+    await customerDoc.set({ stripeId: 'stripeId_Example' });
 
     const { result, waitForNextUpdate } = renderHook(() => useCheckout(), { wrapper });
 
@@ -58,25 +57,33 @@ describe('webHooks', () => {
 
     await waitForNextUpdate();
 
-    const paymentCollection = customerDoc.collection('payments');
+    expect(result.current.triggerUrl).toBe(`${window.location.origin}/account/orders?completed=true`);
+  });
 
-    return new Promise(async (resolve) => {
-      const unsubscribe = paymentCollection.onSnapshot((snapshot) => {
-        const document = snapshot.docs[0] ? snapshot.docs[0]?.data() : null;
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+});
 
-        if (document?.id) {
-          expect(document.id).toBe('pi_1JKS5I2x6R10KRrhk9GzY4BM');
-          expect(document.amount).toBe(1000);
-          unsubscribe();
-          resolve(null);
-        }
-      });
+describe('useCheckout without authenitcation', () => {
+  beforeEach(() => {
+    docId = null;
+  });
+  test('will redirect to sign-in page with no authentication', async () => {
+    const { result } = renderHook(() => useCheckout(), { wrapper });
 
-      await axios.post('http://localhost:5001/demo-testing-app/us-central1/handleWebhookEvents', {
-        type: 'checkout.session.async_payment_succeeded',
-        payment: stripePayment(stripeId),
+    act(() => {
+      result.current.trigger({
+        mode: 'payment',
+        success_url: `${window.location.origin}/account/orders?completed=true`,
+        cancel_url: window.location.href,
+        line_items: [],
+        collect_shipping_address: true,
       });
     });
+
+    expect(result.current.triggerUrl).toBe('/signin?redirect=/');
   });
 
   afterEach(() => {
