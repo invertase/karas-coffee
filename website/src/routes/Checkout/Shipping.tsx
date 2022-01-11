@@ -22,6 +22,7 @@ import { Button } from '../../components/Button';
 import { OrderSummary } from '../../components/OrderSummary';
 import { useCart } from '../../hooks/useCart';
 import { useCheckout } from '../../hooks/useCheckout';
+
 import { useRatesCalculation } from '../../hooks/useRatesCalculation';
 import { ShippingRate, Address, Shipment } from '../../types';
 import { emptyArray } from '../../utils';

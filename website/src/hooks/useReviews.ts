@@ -71,7 +71,7 @@ export function useProductReviewImages(productId: string, userId: string): UseQu
     const items = collection(
       firestore,
       'gcs-mirror',
-      'karas-coffee.appspot.com',
+      'demo-testing-app',
       'prefixes',
       userId,
       'prefixes',

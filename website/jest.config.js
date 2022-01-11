@@ -6,6 +6,9 @@ module.exports = {
       tsConfig: '<rootDir>/tsconfig.json',
     },
   },
-  testMatch: ['**/__tests__/*.test.ts'],
+  testMatch: ['**/__tests__/*.test.tsx', '**/__tests__/*.test.ts'],
   testEnvironment: 'jsdom',
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
 };

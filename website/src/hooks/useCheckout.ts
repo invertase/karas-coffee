@@ -26,10 +26,12 @@ export function useCheckout(): {
   trigger: (session: Omit<Session, 'url' | 'customer'>) => void;
   loading: boolean;
   error: Error | null;
+  triggerUrl?: string;
 } {
   const navigate = useNavigate();
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [triggerUrl, setTriggerUrl] = useState<string>('');
   const user = useUser();
 
   const uid = user.data?.uid;
@@ -37,7 +39,8 @@ export function useCheckout(): {
   const trigger = useCallback(
     async (session: Omit<Session, 'url' | 'customer'>) => {
       if (!uid) {
-        return navigate(`/signin?redirect=${window.location.pathname}`);
+        setTriggerUrl(`/signin?redirect=${window.location.pathname}`);
+        return;
       }
 
       setLoading(true);
@@ -46,6 +49,7 @@ export function useCheckout(): {
 
       try {
         const customer = await getDoc(doc(collections.customers, uid));
+
         const { stripe_id } = customer.data() ?? {};
 
         if (!stripe_id) {
@@ -62,7 +66,7 @@ export function useCheckout(): {
 
             if (data?.url) {
               unsubscribe?.();
-              window.location.assign(data.url);
+              setTriggerUrl(data.url);
             }
 
             if (data?.error) {
@@ -91,5 +95,5 @@ export function useCheckout(): {
     [uid],
   );
 
-  return { trigger, loading, error };
+  return { trigger, loading, error, triggerUrl };
 }

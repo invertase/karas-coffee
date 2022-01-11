@@ -21,7 +21,8 @@
     "build": "lerna run build",
     "clean": "lerna run clean && lerna clean --yes",
     "serve": "cd website && yarn serve",
-    "deploy:hosting": "cd website && yarn deploy"
+    "deploy:hosting": "cd website && yarn deploy",
+    "run:emulator:stripe": "cd extensions/stripe-firebase-extensions/firestore-stripe-payments && firebase ext:dev:emulators:start --test-params=emulator-params.env --project=demo-testing-app --test-config=./firebase.json"
   },
   "workspaces": {
     "packages": [

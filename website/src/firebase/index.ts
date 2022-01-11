@@ -16,8 +16,8 @@
 
 import { initializeApp } from 'firebase/app';
 // import { getAnalytics } from 'firebase/analytics';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, CollectionReference } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, collection, CollectionReference, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
 import { Session, Review, Subscription } from '../types';
@@ -34,12 +34,13 @@ import {
 
 export const firebaseConfig = {
   apiKey: 'AIzaSyCrbVzj7TfFBPjxardH4JTuYFr38CZealM',
-  authDomain: 'karas-coffee.firebaseapp.com',
-  projectId: 'karas-coffee',
-  storageBucket: 'karas-coffee.appspot.com',
+  authDomain: 'demo-testing-app.firebaseapp.com',
+  // projectId: 'demo-testing-app',
+  storageBucket: 'demo-testing-app.appspot.com',
   messagingSenderId: '94487412900',
   appId: '1:94487412900:web:b96590557d4383a3fce631',
   measurementId: 'G-M9HH3JL1S7',
+  projectId: 'demo-testing-app',
 };
 
 export const app = initializeApp(firebaseConfig);
@@ -48,6 +49,11 @@ export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+
+// if (process.env.NODE_ENV === 'development') {
+connectFirestoreEmulator(firestore, 'localhost', 8080);
+connectAuthEmulator(auth, 'http://localhost:9099/');
+// }
 
 export const collections = {
   products: collection(firestore, 'products').withConverter(productConverter),

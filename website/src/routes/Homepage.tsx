@@ -33,6 +33,8 @@ import { limit, where } from '@firebase/firestore';
 export function Homepage() {
   const user = useUser();
 
+  console.log(user);
+
   return (
     <>
       {!!user.data && <Hero />}
