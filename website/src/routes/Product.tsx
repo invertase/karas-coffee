@@ -112,7 +112,15 @@ export function Product() {
           </div>
         </div>
       </section>
-      <section className="max-w-xl mx-auto mt-25 px-4 lg:px-0">
+      <section className="mt-24">
+        <Recommendations
+          pid={product.data.id}
+          query={product.data.description}
+          title="You might also like"
+          type={product.data.metadata.type}
+        />
+      </section>
+      <section className="max-w-xl mx-auto mt-24 px-4 lg:px-0">
         {!!user && <Review productId={product.data.id} />}
         <ListReviews productId={product.data.id} />
       </section>
@@ -202,6 +210,50 @@ function ListReviews({ productId }: { productId: string }) {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+import { limit, where, query as firestoreQuery } from '@firebase/firestore';
+import { Heading } from '../components/Heading';
+import { ProductCard, ProductCardSkeleton } from '../components/ProductCard';
+import { ProductType } from '../types';
+import { useVectorSearch } from '../hooks/useVectorSearch';
+import { useFirestoreQuery, useFirestoreQueryData } from '@react-query-firebase/firestore';
+import { collections } from '../firebase';
+
+type RecommendationsProps = {
+  title: string;
+  query: string;
+  pid: string;
+  type: ProductType;
+};
+
+function Recommendations({ title, query, pid }: RecommendationsProps) {
+  // todo: use vector search here
+
+  const products = useVectorSearch(query, 5);
+
+  if (products.isLoading || products.isError) {
+    return (
+      <div className="px-4">
+        <Heading>{title}</Heading>
+        <section className="flex-row lg:grid lg:flex-col lg:grid-cols-4 lg:gap-x-6 lg:gap-y-12">
+          {emptyArray(4).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4">
+      <Heading>{title}</Heading>
+      <section className="flex-row lg:grid lg:flex-col lg:grid-cols-4 lg:gap-x-6 lg:gap-y-12">
+        {!products.isSuccess && emptyArray(4).map((_, i) => <ProductCardSkeleton key={i} />)}
+        {products.isSuccess && products.data.map((product) => <ProductCard key={product.id} product={product} />)}
+      </section>
     </div>
   );
 }
