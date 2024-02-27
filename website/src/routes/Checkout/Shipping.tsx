@@ -66,6 +66,7 @@ export function Shipping() {
         carrierId: rate.carrierId,
         serviceCode: rate.serviceCode,
       },
+      cart,
     });
   }
 
@@ -148,7 +149,32 @@ function ShippingRates({
   const [selected, setSelected] = useState<string | null>(null);
   const shipment = useRef<Shipment>();
 
-  const rates = useRatesCalculation();
+  // const rates = useRatesCalculation();
+  const rates = {
+    mutate: (x: any) => {},
+    isSuccess: true,
+    isError: false,
+    isLoading: false,
+    error: {
+      message: 'Error',
+    },
+    data: {
+      rates: [
+        {
+          carrierDeliveryDays: '3-5',
+          rateId: 'rate_123456789',
+          carrierId: 'carrier_987654321',
+          serviceCode: 'service_code_example',
+          serviceType: 'standard',
+          carrierFriendlyName: 'Example Carrier',
+          deliveryDays: '3-5',
+          shippingAmount: {
+            amount: 9.99,
+          },
+        },
+      ],
+    },
+  };
   const id = address?.id;
 
   useEffect(() => {

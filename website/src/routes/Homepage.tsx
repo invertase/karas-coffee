@@ -29,6 +29,7 @@ import { ContentCard, ContentCardSkeleton } from '../components/ContentCard';
 import { Heading } from '../components/Heading';
 import { useUser } from '../hooks/useUser';
 import { limit, where } from '@firebase/firestore';
+import { Chat } from '../components/Chat';
 
 export function Homepage() {
   const user = useUser();
@@ -163,6 +164,7 @@ function Shop({ title, type }: ShopProps) {
         {!products.isSuccess && emptyArray(4).map((_, i) => <ProductCardSkeleton key={i} />)}
         {products.isSuccess && products.data.map((product) => <ProductCard key={product.id} product={product} />)}
       </section>
+      <Chat />
     </div>
   );
 }
