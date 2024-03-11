@@ -46,6 +46,7 @@ export function Overview() {
           <li>Display Name: {data.displayName}</li>
           <li>Email Address: {data.email || 'N/A'}</li>
           <li>Email Verified: {data.emailVerified ? 'Yes' : 'No'}</li>
+          <PhoneNumber user={data} />
           {/* Ignoring for live demo <PhoneNumber user={data} /> */}
         </ul>
         <div className="mt-4">
