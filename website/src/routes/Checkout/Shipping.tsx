@@ -117,18 +117,7 @@ export function Shipping() {
                 </>
               }
             />
-
-            <Alert type="warning">
-              Stripe Checkout is disabled for the live demo. Please clone and run the demo locally - for more
-              information view the GitHub Repository.
-            </Alert>
-            <Button
-              disabled={!rate}
-              loading={checkout.loading}
-              onClick={() => {
-                window.location.assign('https://checkout.stripe.dev/');
-              }}
-            >
+            <Button disabled={!rate} loading={checkout.loading} onClick={onPlaceOrder}>
               Place Order &rarr;
             </Button>
           </div>
