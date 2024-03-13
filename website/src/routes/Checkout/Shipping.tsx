@@ -39,6 +39,8 @@ export function Shipping() {
   async function onPlaceOrder() {
     if (!address) return;
     if (!rate) return;
+
+    console.log('trigger checkout');
     checkout.trigger({
       mode: 'payment',
       success_url: `${window.location.origin}/account/orders?completed=true`,
