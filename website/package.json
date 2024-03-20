@@ -14,6 +14,7 @@
   "dependencies": {
     "@heroicons/react": "^1.0.4",
     "@minchat/react-chat-ui": "^0.16.2",
+    "@minchat/reactui": "^2.12.0",
     "@reach/tooltip": "^0.16.0",
     "@react-query-firebase/auth": "^0.3.3",
     "@react-query-firebase/firestore": "^0.4.1",
