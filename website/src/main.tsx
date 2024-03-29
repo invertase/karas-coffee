@@ -31,7 +31,6 @@ import { auth } from './firebase';
 const client = new QueryClient();
 import './styles/bouncing.css';
 async function bootstrap(): Promise<void> {
-  await signInAnonymously(auth);
   // Define any bundles to pre-load.
   // const bundles = await Promise.all([fetch('/bundles/shop')]);
   // // Load the bundles into Firestore.

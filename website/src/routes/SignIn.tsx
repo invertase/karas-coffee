@@ -28,6 +28,7 @@ import { Input, Error, Divider } from '../components/Form';
 import { SocialProviders } from '../components/SocialProviders';
 import { auth } from '../firebase';
 import { Button } from '../components/Button';
+import { EmailAuthProvider } from 'firebase/auth';
 
 type FormValues = {
   email: string;
@@ -37,12 +38,6 @@ type FormValues = {
 export function SignIn() {
   const navigate = useNavigate();
   const signIn = useAuthSignInWithEmailAndPassword(auth, {
-    onSuccess() {
-      navigate(redirect || '/');
-    },
-  });
-
-  const signInAnonymously = useAuthSignInAnonymously(auth, {
     onSuccess() {
       navigate(redirect || '/');
     },
@@ -70,6 +65,17 @@ export function SignIn() {
         email: values.email,
         password: values.password,
       });
+
+      if (!auth.currentUser) {
+        console.log('no current user');
+        // TODO: probably throw an error here or something
+        return
+      }
+
+      const credential = EmailAuthProvider.credential(values.email, values.password);
+
+
+      linkMutation.mutate({ user: auth.currentUser, credential: credential });
     },
   });
 

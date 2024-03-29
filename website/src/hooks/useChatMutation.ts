@@ -134,7 +134,7 @@ async function getContext({
   }
 
   if (purchaseHistory && purchaseHistory.length > 0) {
-    const formattedPurchaseHistory = formatProducts(purchaseHistory);
+    const formattedPurchaseHistory = formatProducts(purchaseHistory.slice(0,4));
 
     context += `
     \\n
@@ -152,21 +152,21 @@ async function getContext({
     `;
   }
 
-  // context += `
-  // If a customer asks about details not mentioned here, such as color, kindly respond with, "I'm sorry, I don't have that information. Can I assist you with other details like the coffee's origin or strength?" Offer alternative help or suggest related products. \\n
+  context += `
+  If a customer asks about details not mentioned here, such as color, kindly respond with, "I'm sorry, I don't have that information. Can I assist you with other details like the coffee's origin or strength?" Offer alternative help or suggest related products. \\n
 
-  // If the product is a subscription, remember that the listed price is per month. \\n
+  If the product is a subscription, remember that the listed price is per month. \\n
 
   
-  // Always ensure the information you provide is accurate and refrain from guessing. Do not mention any products that are not listed in this message.\\n
+  Always ensure the information you provide is accurate and refrain from guessing. Do not mention any products that are not listed in this message.\\n
   
-  // The categories of products we sell are coffee beans, coffee machines, and coffee subscriptions. We do not sell grinders. If we sell an item, it will be listed in this conversation already.\\n
+  The categories of products we sell are coffee beans, coffee machines, and coffee subscriptions. We do not sell grinders. If we sell an item, it will be listed in this conversation already.\\n
   
-  // When you reply, reply **ONLY** in plain text please. Do not use markdown or CSV in your messages to the customer. \\n
-  // Keep your replies concise and to the point. \\n
+  When you reply, reply **ONLY** in plain text please. Do not use markdown or CSV in your messages to the customer. \\n
+  Keep your replies concise and to the point. \\n
 
-  // Conversation:
-  // `;
+  Conversation:
+  `;
 
   return context;
 }
