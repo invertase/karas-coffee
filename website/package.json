@@ -8,13 +8,12 @@
     "clean": "rimraf dist",
     "serve": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting",
-    "fvs-emulators": "node_modules/.bin/firebase emulators:start --project=karas-coffee-fvs-01",
+    "fvs-emulators": "node_modules/.bin/firebase emulators:start --project=karas-coffee-invertase",
     "populate_emulator": "cd firebase/fixtures && node populate_data.js"
   },
   "dependencies": {
     "@heroicons/react": "^1.0.4",
     "@minchat/react-chat-ui": "^0.16.2",
-    "@minchat/reactui": "^2.12.0",
     "@reach/tooltip": "^0.16.0",
     "@react-query-firebase/auth": "^0.3.3",
     "@react-query-firebase/firestore": "^0.4.1",

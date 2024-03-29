@@ -34,13 +34,12 @@ import {
 } from './converters';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyBLIkO1bg0Z-O3oTpdJFjXnvWx68iaTt0U',
-  authDomain: 'karas-coffee-fvs-01.firebaseapp.com',
-  projectId: 'karas-coffee-fvs-01',
-  storageBucket: 'karas-coffee-fvs-01.appspot.com',
-  messagingSenderId: '1023289608637',
-  appId: '1:1023289608637:web:f9050a9d0673d610216ad4',
-  measurementId: 'G-YPCM9DSGC4',
+  apiKey: "AIzaSyApdn2A_Uvh68xRcj7ExIgJ-TzOVGi_e7Q",
+  authDomain: "karas-coffee-invertase.firebaseapp.com",
+  projectId: "karas-coffee-invertase",
+  storageBucket: "karas-coffee-invertase.appspot.com",
+  messagingSenderId: "81367302951",
+  appId: "1:81367302951:web:579b2ba2ffa2fe492d9f02"
 };
 
 export const app = initializeApp(firebaseConfig);
@@ -51,8 +50,8 @@ export const firestore = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 
-// connectFirestoreEmulator(firestore, 'localhost', 8080);
-// connectFunctionsEmulator(functions, 'localhost', 5001);
+connectFirestoreEmulator(firestore, 'localhost', 8080);
+connectFunctionsEmulator(functions, 'localhost', 5001);
 
 export const collections = {
   products: collection(firestore, 'products').withConverter(productConverter),

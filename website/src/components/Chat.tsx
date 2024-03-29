@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { MinChatUiProvider, MessageInput, MessageContainer, MessageList } from '@minchat/react-chat-ui';
-import { MinChatUI } from '@minchat/reactui';
-
 import { useChat } from '../hooks/useChat';
 import { useUser } from '../hooks/useUser';
 import { useChatMutation } from '../hooks/useChatMutation';
-import { User } from 'firebase/auth';
-import { Link, useLocation } from 'react-router-dom';
-import { Props } from '@minchat/react-chat-ui/dist/components/message-container';
-//@ts-expect-error
-import ReactAnimatedEllipsis from 'react-animated-ellipsis';
+import { useLocation } from 'react-router-dom';
 import { AnimatedDots } from './AnimatedDots';
 
 type FirestoreMessage = {
@@ -111,16 +105,16 @@ export function Chat({ isOpen }: ChatProps) {
   };
 
   return (
-    <div className={['/signin', '/forgot-password', '/register'].includes(location.pathname) ? 'hidden' : ''}>
+    <div className={['/signin', '/forgot-password', '/register'].includes(location.pathname) ? 'hidden' : 'invisible lg:visible'}>
       <div
-        className={`w-1/3 fixed bg-gray-300 h-[calc(100vh-5rem)] rounded top-20 -right-3 z-1000 p-2 transition duration-700 ${
-          isOpen ? 'translate-x-[0]' : 'translate-x-[100%]'
+        className={`w-1/3 fixed bg-gray-300 p-1 h-[calc(100vh-5rem)] rounded top-20 -right-3 z-1000 transition duration-700 ${
+          isOpen ? 'translate-x-[0%]' : 'translate-x-[100%]'
         }`}
       >
-        <div id="chat-container" className="w-full h-full flex flex-col">
+        <div id="chat-container" className="w-auto h-full flex flex-col">
           <MinChatUiProvider theme="#6ea9d7" colorSet={myColorSet}>
             {/* Chat message list container grows to fill available space, pushing input to bottom */}
-            <div id="chat-messages-container" className="flex-grow overflow-y-scroll bg-[#111827]">
+            <div id="chat-messages-container" className="flex-grow overflow-y-scroll bg-[#111827] mr-[12px]">
               <ChatMessagesList isTyping={isTyping()} messages={displayedMessages} />
             </div>
             {/* Message input stays at the bottom */}
@@ -162,20 +156,6 @@ const ChatMessagesList = ({ isTyping, messages }: { isTyping: boolean; messages:
   );
 };
 
-const emptyMessageComponent = (user?: User) => {
-  if (!user || !user.uid) {
-    return (
-      <p className="text-white top-1/2 absolute left-1/2 -translate-x-1/2 -translate-y-1/2">
-        Please{' '}
-        <Link to="/signin" className="hover:underline text-indigo-700">
-          Sign In
-        </Link>{' '}
-        to use this chat.
-      </p>
-    );
-  }
-  return <p className="text-white top-1/2 absolute left-1/2 -translate-x-1/2 -translate-y-1/2">No messages yet.</p>;
-};
 const colors = {
   // Theme Colors
   themeDark: '#111827',
