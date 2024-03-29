@@ -49,9 +49,11 @@ export function Overview() {
           {/* Ignoring for live demo <PhoneNumber user={data} /> */}
         </ul>
         <div className="mt-4">
-          <Button onClick={() => signOut.mutate()} loading={signOut.isLoading}>
-            Sign Out
-          </Button>
+          {!data.isAnonymous && (
+            <Button onClick={() => signOut.mutate()} loading={signOut.isLoading}>
+              Sign Out
+            </Button>
+          )}
         </div>
       </div>
     </div>
