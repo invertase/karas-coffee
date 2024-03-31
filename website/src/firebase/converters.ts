@@ -78,9 +78,9 @@ export const purchaseHistoryConverter: FirestoreDataConverter<Product> = {
       images: product.images,
       metadata: {
         type: product.metadata.type,
-        origin: product.metadata.type === 'coffee' ? product.metadata.origin : undefined,
-        strength: product.metadata.type === 'coffee' ? product.metadata.strength : undefined,
-        variety: product.metadata.type === 'coffee' ? product.metadata.variety : undefined,
+        origin: product.metadata.type === 'coffee' ? product.metadata.origin : null,
+        strength: product.metadata.type === 'coffee' ? product.metadata.strength : null,
+        variety: product.metadata.type === 'coffee' ? product.metadata.variety : null,
         price: product.metadata.price,
         price_usd: product.metadata.price_usd,
         weight: product.metadata.weight,
