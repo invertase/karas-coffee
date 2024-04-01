@@ -22,6 +22,7 @@ import { useOrders } from '../../hooks/useOrders';
 import { emptyArray } from '../../utils';
 import { Skeleton } from '../../components/Skeleton';
 import { DocumentData } from 'firebase/firestore';
+import { Product } from '../../types';
 
 type OpenMap = { [key: string]: boolean };
 
@@ -55,78 +56,44 @@ export function Orders() {
             </div>
           ))}
         {orders.isSuccess &&
-          orders.data.map((order: DocumentData) => (
+          orders.data.map((item: Product) => (
             <AccordionItem
-              key={order.id}
-              isOpen={open[order.id]}
-              onToggle={() => toggleOrder(order.id)}
+              key={item.id}
+              isOpen={open[item.id]}
+              onToggle={() => toggleOrder(item.id)}
               collapsible={
-                <>
-                  <div className="flex pb-3">
+                <div className="divide-y">
+                  <div className="flex items-center">
                     <div className="flex-grow">
-                      {!!order.charges?.data?.[0].receipt_url && (
-                        <a
-                          href={order.charges.data[0].receipt_url}
-                          target="_blank"
-                          className="text-indigo-600 hover:underline text-sm"
-                          rel="noreferrer"
-                        >
-                          View Receipt &rarr;
-                        </a>
-                      )}
-                    </div>
-                    <div className="font-medium">Sub Total</div>
-                  </div>
-                  <div className="divide-y">
-                    {order.items.map((item: Record<string, never>) => (
-                      <div key={item.id} className="flex items-center py-3">
-                        <div className="flex-grow">
-                          <h3 className="font-bold text-lg">{item.description}</h3>
-                          <div className="text-sm text-gray-600">Quantity: {item.quantity}</div>
-                        </div>
-                        <div className="flex justify-end">
-                          <div className="font-medium">${(item.amount_subtotal / 100).toFixed(2)}</div>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="flex py-3 font-bold">
-                      <div className="flex-grow">Total</div>
-                      <div>${(order.amount / 100).toFixed(2)}</div>
+                      <h3 className="font-bold text-lg">Details</h3>
+                      <div className="text-sm text-gray-600">Type: {item.metadata.type}</div>
+                      <div className="text-sm text-gray-600">Price (USD): {item.metadata.price_usd}</div>
+                      <div className="text-sm text-gray-600">Weight: {item.metadata.weight}</div>
                     </div>
                   </div>
-                </>
+                </div>
               }
             >
-              <div className="flex-grow flex items-center">
+              <div className="flex items-center justify-between gap-x-4">
                 <div className="flex-grow">
-                  <div className="font-bold">{format(new Date(order.created * 1000), 'eeee, do LLLL, y')}</div>
-                  {!!order.shipping && (
-                    <div className="text-sm text-gray-600">
-                      {[
-                        order.shipping.name,
-                        order.shipping.address.line1,
-                        order.shipping.address.line2,
-                        order.shipping.address.state,
-                        order.shipping.address.city,
-                        order.shipping.address.postal_code,
-                      ]
-                        .filter(Boolean)
-                        .join(', ')}
-                    </div>
-                  )}
-
-                  {!!order.shippingLabel?.trackingNumber && (
-                    <div className="text-xs text-gray-600">
-                      <span className="font-bold">Tracking Number:</span> {order.shippingLabel.trackingNumber}
-                    </div>
-                  )}
+                  <div className="text-lg font-bold">{item.name}</div>
+                  <div className="text-sm text-gray-600 overflow-auto break-words">{item.description}</div>
                 </div>
-                <div>
-                  <div className="font-bold text-lg">${(order.amount / 100).toFixed(2)}</div>
+                <div className="flex-grow flex justify-end">
+                  {!!item.images.length && (
+                    <div className="flex">
+                      <img
+                        src={item.images[0]}
+                        alt={`Image of ${item.name}`}
+                        className="w-20 h-14 mr-2 object-cover rounded"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </AccordionItem>
           ))}
+        ;
       </Accordion>
     </section>
   );
