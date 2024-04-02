@@ -186,6 +186,9 @@ function Review({ productId }: { productId: string }) {
 
 function ListReviews({ productId }: { productId: string }) {
   const reviews = useProductReviews(productId);
+  const user = useUser();
+
+  const isAnonymous = !user.isLoading && user.data?.isAnonymous;
 
   const wrapper = (children: React.ReactNode, key: string) => (
     <div className="py-12" key={key}>
@@ -196,7 +199,7 @@ function ListReviews({ productId }: { productId: string }) {
   return (
     <div className="mt-12">
       <h2 className="mb-4 text-3xl font-extrabold tracking-wide">Reviews</h2>
-      <Alert type="warning">For this demo application, only your own reviews are currently visible.</Alert>
+      <Alert type="warning">{isAnonymous ? 'Please sign in to see your reviews.' : 'For this demo application, only your own reviews are currently visible.'}</Alert>
       <div className="divide-y">
         {reviews.status === 'loading' && emptyArray(5).map((_, i) => wrapper(<ReviewCardSkeleton />, `${i}`))}
         {reviews.status === 'success' && (
