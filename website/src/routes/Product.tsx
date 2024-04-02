@@ -90,7 +90,7 @@ export function Product() {
                     <XIcon
                       role="button"
                       className="w-5 h-5 mt-7 hover:opacity-50 text-red-400"
-                      onClick={() => removeFromCart(product.data!)}
+                      onClick={() => removeFromCart([product.data!])}
                     />
                   </div>
                 </div>

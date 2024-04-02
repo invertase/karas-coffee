@@ -10,3 +10,5 @@ dist-ssr
 *.local
 firestore-vector-search
 firestore-genai-chatbot
+firestore-validate-address
+delete-user-data

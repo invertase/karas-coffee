@@ -54,7 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
             onClick={() => {
               if (user.data) {
                 if (inCart) {
-                  removeFromCart(product);
+                  removeFromCart([product]);
                 } else {
                   addToCart(product);
                 }

@@ -1,7 +1,11 @@
 {
   "hosting": {
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "/bundles/*",
@@ -28,8 +32,9 @@
     }
   },
   "extensions": {
-    "firestore-genai-chatbot": "../firestore-genai-chatbot",
-    "firestore-vector-search": "../firestore-vector-search"
+    "firestore-vector-search": "googlecloud/firestore-vector-search@0.0.1-alpha.3",
+    "firestore-genai-chatbot": "googlecloud/firestore-genai-chatbot@0.0.9",
+    "firestore-validate-address": "googlemapsplatform/firestore-validate-address@0.1.3"
   },
   "functions": {
     "source": "../functions"

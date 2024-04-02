@@ -52,7 +52,6 @@ export function useCheckout(): {
         const customer = await getDoc(doc(collections.customers, uid));
 
         const purchaseHistory = collections.purchaseHistory(uid);
-
         if (session.cart) {
           for (const item of session.cart) {
             try {
@@ -62,11 +61,11 @@ export function useCheckout(): {
                 quantity: item['quantity'],
                 created: new Date().toISOString(),
               });
-              removeFromCart(item);
             } catch (e) {
               console.error(e);
             }
           }
+          removeFromCart(session.cart);
           client.invalidateQueries(['purchaseHistory', uid]);
         }
 

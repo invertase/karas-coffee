@@ -55,14 +55,14 @@ export function Header(props: HeaderProps) {
         <div className="flex flex-shrink-0 space-x-4">
           <Cart />
           <HeaderLink to="/shop">Shop</HeaderLink>
-          <HeaderLink to={user.isSuccess && !!user.data ? '/account' : '/signin'}>
-            {user.isSuccess && !!user.data && (
+          <HeaderLink to={user.isSuccess && !!user.data && !user.data.isAnonymous? '/account' : '/signin'}>
+            {user.isSuccess && !!user.data && !user.data.isAnonymous && (
               <>
                 <span>My Account</span>
                 {!!user.data?.photoURL && <img src={user.data?.photoURL} className="ml-2 rounded-full w-7 h-7" />}
               </>
             )}
-            {user.isSuccess && !user.data && 'Sign In'}
+            {(user.isSuccess && !user.data) || (user.data?.isAnonymous) && 'Sign In'}
           </HeaderLink>
         </div>
         <div

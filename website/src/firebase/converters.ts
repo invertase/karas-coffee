@@ -239,10 +239,16 @@ export const addressConverter: FirestoreDataConverter<Address> = {
   fromFirestore(snapshot) {
     const data = snapshot.data();
 
+    const validity = ['PREMISE','SUB_PREMISE'].includes(data?.addressValidity?.verdict) ? true : false;
+
+
+
     return {
       id: snapshot.id,
+      name: data.name,
       address: data.address,
-      validation: data.validation,
+      appAddress: data.appAddress,
+      validity
     };
   },
   toFirestore(data): DocumentData {

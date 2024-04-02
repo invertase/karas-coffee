@@ -62,18 +62,8 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link to="https://github.com/ShipEngine/firebase-extensions/tree/master/extensions/rates">
-                ShipEngine - Calculate Shipping Rates
-              </Link>
-            </li>
-            <li>
-              <Link to="https://github.com/ShipEngine/firebase-extensions/tree/master/extensions/purchase-label">
-                ShipEngine - Purchase Labels
-              </Link>
-            </li>
-            <li>
-              <Link to="https://github.com/ShipEngine/firebase-extensions/tree/master/extensions/validate-address">
-                ShipEngine - Validate Address
+              <Link to="https://github.com/googlemaps/gmp-firebase-extensions/tree/main/firestore-validate-address">
+                Google Maps Platform - Validate Address in Firestore
               </Link>
             </li>
           </ul>
