@@ -15,7 +15,7 @@
  */
 
 import React, { useRef, useState } from 'react';
-import { User, RecaptchaVerifier, ConfirmationResult } from 'firebase/auth';
+import { User, RecaptchaVerifier, ConfirmationResult, signInAnonymously } from 'firebase/auth';
 
 import { auth } from '../../firebase';
 import { Button } from '../../components/Button';
@@ -30,6 +30,7 @@ export function Overview() {
 
   const signOut = useAuthSignOut(auth, {
     onSuccess() {
+      signInAnonymously(auth);
       navigate('/');
     },
   });

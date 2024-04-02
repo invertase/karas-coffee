@@ -41,7 +41,6 @@ export function Shipping() {
     if (!address) return;
     if (!rate) return;
 
-    console.log('trigger checkout');
     checkout.trigger({
       mode: 'payment',
       success_url: `${window.location.origin}/account/orders?completed=true`,
@@ -162,13 +161,13 @@ function ShippingRates({
     data: {
       rates: [
         {
-          carrierDeliveryDays: '3-5',
+          carrierDeliveryDays: '5',
           rateId: 'rate_123456789',
           carrierId: 'carrier_987654321',
           serviceCode: 'service_code_example',
-          serviceType: 'standard',
+          serviceType: 'Standard',
           carrierFriendlyName: 'Example Carrier',
-          deliveryDays: '3-5',
+          deliveryDays: '5',
           shippingAmount: {
             amount: 9.99,
           },
@@ -192,12 +191,12 @@ function ShippingRates({
         countryCode: 'US',
       },
       shipTo: {
-        name: address.address.name,
-        addressLine1: address.address.addressLine1,
-        addressLine2: address.address.addressLine2,
-        cityLocality: address.address.cityLocality,
-        stateProvince: address.address.stateProvince,
-        postalCode: address.address.postalCode,
+        name: address.name,
+        addressLine1: address.appAddress.line1,
+        addressLine2: address.appAddress.line2,
+        cityLocality: address.appAddress.city,
+        stateProvince: address.appAddress.state,
+        postalCode: address.appAddress.postalCode,
         countryCode: 'US',
       },
       packages: [
@@ -241,12 +240,12 @@ function ShippingRates({
             <p className="text-gray-800">Select a shipping carrier and rate:</p>
             <div className="mt-2 text-sm text-gray-500">
               {[
-                address.address.name,
-                address.address.addressLine1,
-                address.address.addressLine2,
-                address.address.cityLocality,
-                address.address.stateProvince,
-                address.address.postalCode,
+                address.name,
+                address.appAddress.line1,
+                address.appAddress.line2,
+                address.appAddress.city,
+                address.appAddress.state,
+                address.appAddress.postalCode,
               ]
                 .filter(Boolean)
                 .join(', ')}

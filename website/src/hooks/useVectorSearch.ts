@@ -11,7 +11,7 @@ export function useVectorSearch(queryString: string, limit: number) {
     },
     string[]
   >(
-    ['concierge', queryString],
+    ['concierge', queryString,limit],
     functions,
     'ext-firestore-vector-search-queryCallable',
     {
@@ -29,7 +29,7 @@ export function useVectorSearch(queryString: string, limit: number) {
   const q = ids ? query(collections.products, where('id', 'in', ids)) : query(collections.products);
 
   const results = useFirestoreQueryData(
-    ['recommendations', ids],
+    [queryString, ids,limit],
     q,
     {},
     {

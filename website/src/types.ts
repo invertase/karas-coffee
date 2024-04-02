@@ -160,18 +160,17 @@ export interface Content {
 export interface Address {
   id: string;
   address: {
-    addressLine1: string;
-    addressLine2?: string;
-    cityLocality: string;
-    name: string;
-    stateProvince: string;
+    addressLines: string[];
+  };
+  appAddress: {
+    city: string;
+    line1: string;
+    line2: string;
     postalCode: string;
-    countryCode: string;
-  };
-  validation?: {
-    // https://www.shipengine.com/docs/addresses/validation/#address-status-meanings
-    status: 'verified' | 'unverified' | 'warning' | 'error';
-  };
+    state: string;
+  }
+  name: string;
+  validity?: boolean;
 }
 
 export interface ShippingRate {

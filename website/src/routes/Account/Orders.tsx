@@ -93,7 +93,6 @@ export function Orders() {
               </div>
             </AccordionItem>
           ))}
-        ;
       </Accordion>
     </section>
   );
