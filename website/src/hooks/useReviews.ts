@@ -48,7 +48,7 @@ export function useProductReviews(productId: string): UseQueryResult<Review[]> {
       subscribe: true,
     },
     {
-      enabled: !user.isLoading,
+      enabled: !user.isLoading && !user.data?.isAnonymous,
     },
   );
 }
