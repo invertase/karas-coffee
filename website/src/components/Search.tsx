@@ -80,7 +80,7 @@ const UnifiedSearch = ({ query, conciergeEnabled }: { query: string; conciergeEn
   const debouncedQuery = useDebounce(query, 1000);
   const { hits: algHits } = useHits<any>();
 
-  const results = useCustomSearch(debouncedQuery, 3);
+  const results = useCustomSearch('customSearch',debouncedQuery, 3);
 
   if (results.isLoading)
     return (

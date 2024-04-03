@@ -23,11 +23,16 @@ import { emptyArray } from '../../utils';
 import { Skeleton } from '../../components/Skeleton';
 import { DocumentData } from 'firebase/firestore';
 import { Product } from '../../types';
+import { usePurchaseHistory } from '../../hooks/usePurchaseHistory';
+import { useUser } from '../../hooks/useUser';
 
 type OpenMap = { [key: string]: boolean };
 
 export function Orders() {
-  const orders = useOrders();
+  const user = useUser();
+  // const orders = useOrders();
+
+  const purchaseHistory = usePurchaseHistory(['viewOrders',user.data?.uid ?? ''], user.data?.uid ?? '');
 
   const [open, setOpen] = useState<OpenMap>({});
 
@@ -37,6 +42,8 @@ export function Orders() {
       [orderId]: !prev[orderId],
     }));
   }
+
+  const orders = purchaseHistory;
 
   return (
     <section>
@@ -80,7 +87,7 @@ export function Orders() {
                   <div className="text-sm text-gray-600 overflow-auto break-words">{item.description}</div>
                 </div>
                 <div className="flex-grow flex justify-end">
-                  {!!item.images.length && (
+                  {!!item.images?.length && (
                     <div className="flex">
                       <img
                         src={item.images[0]}

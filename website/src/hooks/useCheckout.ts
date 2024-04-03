@@ -62,6 +62,7 @@ export function useCheckout(): {
                 created: new Date().toISOString(),
               });
             } catch (e) {
+              console.error("Error adding purchase history "+ uid )
               console.error(e);
             }
           }

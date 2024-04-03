@@ -19,7 +19,7 @@ import * as admin from 'firebase-admin';
 // @ts-expect-error No types for firebase-tools
 import * as firebase_tools from 'firebase-tools';
 
-const functions = firebaseFunctions.region('europe-west3');
+const functions = firebaseFunctions;
 
 admin.initializeApp();
 
@@ -29,8 +29,8 @@ function getProductIds(): Promise<string[]> {
     .firestore()
     .collection('products')
     .listDocuments()
-    .then((docRefs) => {
-      return docRefs.map((docRef) => docRef.id);
+    .then((docRefs: any) => {
+      return docRefs.map((docRef: any) => docRef.id);
     });
 }
 
@@ -45,14 +45,22 @@ function deleteCollection(path: string): Promise<void> {
 
 // Send a welcome email on user create.
 exports.onAuthCreate = functions.auth.user().onCreate(async (user: firebaseFunctions.auth.UserRecord) => {
-  const collection = admin.firestore().collection('mail');
-  await collection.add({ to: user.email, template: { name: 'welcome_email' } });
+  if (user.email) {
+    const collection = admin.firestore().collection('mail');
+    await collection.add({
+      to: user.email,
+      message: {
+        subject: 'Welcome to Karas Coffee!',
+        html: 'Welcome to Karas Coffee! We are excited to have you as a customer.',
+      },
+    });
+  }
 });
 
 // Send a order update SMS to the user once they have placed an order.
 exports.onPaymentCreated = functions.firestore
   .document('customers/{customerId}/payments/{paymentId}')
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (snapshot: any, context: any) => {
     const customerId = context.params.customerId;
     const user = await admin.auth().getUser(customerId);
     if (!user.phoneNumber) {
