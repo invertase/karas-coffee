@@ -36,7 +36,6 @@ export function useChatContextMutation(customerId: string): UseMutationResult<st
       //   const userData = user.data;
 
       const documentRef = doc(collections.chat(customerId));
-      console.log();
       await updateDoc(doc(firestore, 'customers', customerId), {
         context,
       });

@@ -67,9 +67,6 @@ export function Chat({ isOpen }: ChatProps) {
       //@ts-ignore TODO: fix this
       const transformedMessages = chat.data.map(firestoreMessageToMessage).flat();
 
-      console.log('transformedMessages', transformedMessages);
-      console.log('messages', messages);
-
       if (transformedMessages.length >= messages.length) {
 
       setMessages(transformedMessages);

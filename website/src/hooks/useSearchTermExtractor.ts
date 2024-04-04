@@ -20,7 +20,5 @@ export function useSearchTermExtractor(conversation: string) {
     },
   );
 
-  console.log(searchTerm.data);
-
   return searchTerm;
 }

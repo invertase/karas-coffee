@@ -67,7 +67,6 @@ export function SignIn() {
       });
 
       if (!auth.currentUser) {
-        console.log('no current user');
         // TODO: probably throw an error here or something
         return
       }
