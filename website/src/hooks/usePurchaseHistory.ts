@@ -29,7 +29,7 @@ export function usePurchaseHistory(key: QueryKey, uid: string): UseQueryResult<P
   const collection = collections.purchaseHistory(uid!);
   let ref: Query<Purchase>;
 
-  ref = query(collection, orderBy('date', 'desc'), limit(4));
+  ref = query(collection);
 
   return useFirestoreQueryData<Purchase>(
     key,
