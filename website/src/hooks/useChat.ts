@@ -21,10 +21,17 @@ import { ref } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient, UseQueryResult } from 'react-query';
 import { collections, firestore, storage } from '../firebase';
-import { Review } from '../types';
 import { useUser } from './useUser';
 
-export function useChat(): UseQueryResult<Review[]> {
+type FirestoreMessage = {
+  prompt: string;
+  response: string;
+  status: {
+    state: 'ERROR' | 'COMPLETED' | 'PROCESSING';
+  };
+};
+
+export function useChat(): UseQueryResult<FirestoreMessage[]> {
   const user = useUser();
 
   const collection = collections.chat(user.data?.uid || 'test');

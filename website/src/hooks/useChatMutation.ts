@@ -16,7 +16,18 @@
 
 import { v4 as uuid } from 'uuid';
 import { useMutation, UseMutationResult, useQueryClient } from 'react-query';
-import { addDoc, deleteDoc, doc, getDocs, query, setDoc, Timestamp, updateDoc, where } from 'firebase/firestore';
+import {
+  addDoc,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  QuerySnapshot,
+  setDoc,
+  Timestamp,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { ref, uploadBytes } from 'firebase/storage';
 
 import { collections, firestore, functions, storage } from '../firebase';
@@ -33,40 +44,29 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
   const purchaseHistoryResult = usePurchaseHistory(['purchaseHistory', uid], uid!);
 
   return useMutation(
-    async ({ prompt, searchQuery }: { prompt?: string; searchQuery?: string }) => {
+    async ({ prompt, searchQuery, reset }: { prompt?: string; searchQuery?: string; reset?: boolean }) => {
       // Soft validation - the Firestore security rules ensure they are
       // authenticated.
       if (!user.data) {
         return;
       }
+      const isAnon = user.data.isAnonymous;
       const uid = user.data.uid;
       const documentRef = doc(firestore, 'customers', uid);
 
       let purchaseHistory: Purchase[] = [];
 
-      if (purchaseHistoryResult.data) {
+      if (!isAnon && purchaseHistoryResult.data) {
         purchaseHistory = purchaseHistoryResult.data;
       }
 
       let context: string = await getContext({ purchaseHistory });
 
       if (searchQuery) {
-        const vectorSearch = httpsCallable<{ query: string; limit: number }, string[]>(
-          functions,
-          'ext-firestore-vector-search-queryCallable',
-        );
-
-        const { data } = await vectorSearch({
-          query: searchQuery,
-          limit: 6,
-        });
-        const q =
-          data && data.length > 0 ? query(collections.products, where('id', 'in', data)) : query(collections.products);
-
-        const vectorSearchProducts = await getDocs(q);
+        const vectorSearchProducts = await performVectorSearch(searchQuery, 6);
 
         context = await getContext({
-          vectorSearchResults: vectorSearchProducts.docs.map((doc) => doc.data() as Product),
+          vectorSearchResults: vectorSearchProducts.docs.map((doc) => doc.data()),
           purchaseHistory: purchaseHistory,
         });
       }
@@ -79,13 +79,7 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
         { merge: true },
       );
 
-      if (prompt) {
-        await addDoc(collections.chat(uid), {
-          prompt,
-        });
-      }
-
-      if (!prompt && !searchQuery) {
+      if (reset) {
         // clear chat collection
         const chatCollection = await getDocs(collections.chat(uid));
 
@@ -95,6 +89,12 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
 
         await addDoc(collections.chat(uid), {
           prompt: 'Hi!',
+        });
+      }
+
+      if (prompt) {
+        await addDoc(collections.chat(uid), {
+          prompt,
         });
       }
 
@@ -172,22 +172,39 @@ async function getContext({
 const formatProducts = (products: Product[]) =>
   products
     .map(({ name, metadata, description }) => {
-      const coffeeDetails = metadata.type === 'coffee' ? 
-        `, Origin: ${metadata.origin}, Strength: ${metadata.strength}, Variety: ${metadata.variety}` : 
-        '';
+      const coffeeDetails =
+        metadata.type === 'coffee'
+          ? `, Origin: ${metadata.origin}, Strength: ${metadata.strength}, Variety: ${metadata.variety}`
+          : '';
       return `Product: ${name}, Type: ${metadata.type}, Description: ${description}, Price: $${metadata.price_usd}${coffeeDetails}.`;
     })
     .join('\n\n');
 
+const formatPurchases = (purchases: Purchase[]) =>
+  purchases
+    .map(({ product, quantity }) => {
+      const { name, metadata, description } = product;
+      const coffeeDetails =
+        metadata.type === 'coffee'
+          ? `, Origin: ${metadata.origin}, Strength: ${metadata.strength}, Variety: ${metadata.variety}`
+          : '';
+      return `Purchase: ${name}, Quantity: ${quantity}, Type: ${metadata.type}, Description: ${description}, Price: $${metadata.price_usd}${coffeeDetails}.`;
+    })
+    .join('\n\n');
 
+const performVectorSearch = async (searchQuery: string, limit: number): Promise<QuerySnapshot<Product>> => {
+  const vectorSearch = httpsCallable<{ query: string; limit: number }, string[]>(
+    functions,
+    'ext-firestore-vector-search-queryCallable',
+  );
 
-    const formatPurchases = (purchases: Purchase[]) =>
-    purchases
-      .map(({ product, quantity }) => {
-        const { name, metadata, description } = product;
-        const coffeeDetails = metadata.type === 'coffee' ? 
-          `, Origin: ${metadata.origin}, Strength: ${metadata.strength}, Variety: ${metadata.variety}` : 
-          '';
-        return `Purchase: ${name}, Quantity: ${quantity}, Type: ${metadata.type}, Description: ${description}, Price: $${metadata.price_usd}${coffeeDetails}.`;
-      })
-      .join('\n\n');
+  const { data } = await vectorSearch({
+    query: searchQuery,
+    limit: 6,
+  });
+  const q =
+    data && data.length > 0 ? query(collections.products, where('id', 'in', data)) : query(collections.products);
+
+  const vectorSearchProducts = await getDocs(q);
+  return vectorSearchProducts;
+};

@@ -5,6 +5,8 @@ import { useUser } from '../hooks/useUser';
 import { useChatMutation } from '../hooks/useChatMutation';
 import { useLocation } from 'react-router-dom';
 import { AnimatedDots } from './AnimatedDots';
+import { getDocs } from 'firebase/firestore';
+import { collections } from '../firebase';
 
 type FirestoreMessage = {
   prompt: string;
@@ -64,30 +66,57 @@ export function Chat({ isOpen }: ChatProps) {
     if (chat.isSuccess && chat.data) {
       //@ts-ignore TODO: fix this
       const transformedMessages = chat.data.map(firestoreMessageToMessage).flat();
+
+      console.log('transformedMessages', transformedMessages);
+      console.log('messages', messages);
+
+      if (transformedMessages.length >= messages.length) {
+
       setMessages(transformedMessages);
+      }
     }
-  }, [chat.isSuccess, chat.data, chat.isLoading]);
+  }, [chat.isSuccess,chat.data]);
 
   useEffect(() => {
     if (!isOpen) {
       try {
-        chatMutation.mutate({});
+        chatMutation.mutate({reset: true});
       } catch (e) {}
     }
   }, [isOpen]);
 
   const handleSendMessage = (text: string) => {
-    setMessages([
-      ...messages,
-      {
-        text,
-        user: {
-          id: 'user',
-          name: 'User',
-        },
+    // Optimistically update the UI with the new message
+    const optimisticMessage = {
+      text,
+      user: {
+        id: 'user',
+        name: 'User',
       },
-    ]);
-    chatMutation.mutate({ prompt: text, searchQuery: text });
+    };
+  
+    // Update state immediately to include the new message
+    setMessages((currentMessages) => [...currentMessages, optimisticMessage]);
+  
+    // Perform the mutation
+    chatMutation.mutate(
+      { prompt: text, searchQuery: text },
+      {
+        // Optional: onSuccess, onError callbacks for mutation
+        onSuccess: () => {
+          // Handle successful mutation if needed
+          // e.g., Invalidate queries or further update UI based on response
+        },
+        onError: (error) => {
+          // Handle any error by possibly reverting the optimistic update
+          // This is simplified; in practice, you might want to show an error message or perform other actions
+          setMessages((currentMessages) =>
+            currentMessages.filter((message) => message !== optimisticMessage),
+          );
+          console.error('Error sending message:', error);
+        },
+      }
+    );
   };
   // const [, ...displayedMessages] = messages.filter((m) => !!m.text);
   // memo-ize instead
