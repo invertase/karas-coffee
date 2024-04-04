@@ -26,10 +26,9 @@ function isQueryConstraints(value: unknown): value is QueryConstraint[] {
 
 export function usePurchaseHistory(key: QueryKey, uid: string): UseQueryResult<Purchase[]> {
 
-  const collection = collections.purchaseHistory(uid!);
-  let ref: Query<Purchase>;
+  const collection = collections.purchaseHistory(uid || 'test');
 
-  ref = query(collection);
+  const ref = query(collection);
 
   return useFirestoreQueryData<Purchase>(
     key,
