@@ -51,25 +51,6 @@ export function useCheckout(): {
       try {
         const customer = await getDoc(doc(collections.customers, uid));
 
-        const purchaseHistory = collections.purchaseHistory(uid);
-        if (session.cart) {
-          for (const item of session.cart) {
-            try {
-              await addDoc(purchaseHistory, {
-                ...item,
-                //@ts-ignore
-                quantity: item['quantity'],
-                created: new Date().toISOString(),
-              });
-            } catch (e) {
-              console.error("Error adding purchase history "+ uid )
-              console.error(e);
-            }
-          }
-          removeFromCart(session.cart);
-          client.invalidateQueries(['purchaseHistory', uid]);
-        }
-
         const { stripe_id } = customer.data() ?? {};
 
         if (!stripe_id) {
@@ -110,6 +91,24 @@ export function useCheckout(): {
       } catch (e: any) {
         setError(e);
         setLoading(false);
+      }
+      const purchaseHistory = collections.purchaseHistory(uid);
+      if (session.cart) {
+        for (const item of session.cart) {
+          try {
+            await addDoc(purchaseHistory, {
+              ...item,
+              //@ts-ignore
+              quantity: item['quantity'],
+              created: new Date().toISOString(),
+            });
+          } catch (e) {
+            console.error("Error adding purchase history "+ uid )
+            console.error(e);
+          }
+        }
+        removeFromCart(session.cart);
+        client.invalidateQueries(['purchaseHistory', uid]);
       }
     },
     [uid],

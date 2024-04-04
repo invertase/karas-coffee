@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import cx from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { AddressBook } from '../../components/AddressBook';
@@ -28,6 +28,7 @@ import { emptyArray } from '../../utils';
 import { Skeleton } from '../../components/Skeleton';
 import { useUser } from '../../hooks/useUser';
 import { Link } from 'react-router-dom';
+import { LoadingCover } from '../../components/LoadingCover';
 
 export function Shipping() {
   const { cart } = useCart();
@@ -37,9 +38,14 @@ export function Shipping() {
   const [rate, setRate] = useState<ShippingRate | null>(null);
   const shipment = useRef<Shipment>();
   const user = useUser();
+
+  const [isAwaitingStripeCheckout, setIsAwaitingStripeCheckout] = useState(false);
+
   async function onPlaceOrder() {
     if (!address) return;
     if (!rate) return;
+
+    setIsAwaitingStripeCheckout(true);
 
     checkout.trigger({
       mode: 'payment',
@@ -71,6 +77,8 @@ export function Shipping() {
       cart,
     });
   }
+
+  if (isAwaitingStripeCheckout) return <LoadingCover />;
 
   return (
     <section className="px-4 mt-8 lg:px-0">

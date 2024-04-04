@@ -71,9 +71,13 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
         });
       }
       // update context before proceeding
-      await setDoc(doc(firestore, 'customers', uid), {
-        context,
-      });
+      await setDoc(
+        doc(firestore, 'customers', uid),
+        {
+          context,
+        },
+        { merge: true },
+      );
 
       if (prompt) {
         await addDoc(collections.chat(uid), {
@@ -134,7 +138,7 @@ async function getContext({
   }
 
   if (purchaseHistory && purchaseHistory.length > 0) {
-    const formattedPurchaseHistory = formatProducts(purchaseHistory.slice(0,4));
+    const formattedPurchaseHistory = formatProducts(purchaseHistory.slice(0, 4));
 
     context += `
     \\n
