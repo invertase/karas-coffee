@@ -26,18 +26,12 @@ import { useUser } from './useUser';
 
 export function useChat(): UseQueryResult<Review[]> {
   const user = useUser();
-  // Soft validation - the Firestore security rules ensure they are
-  // authenticated.
 
   const collection = collections.chat(user.data?.uid || 'test');
 
   const constraints: QueryConstraint[] = [];
 
   constraints.push(orderBy('createTime', 'asc'));
-
-  // Ensure the record has all the toxicity fields.
-
-  // For this example, only show the users own reviews.
 
   return useFirestoreQueryData(
     ['chat', user.data?.uid],

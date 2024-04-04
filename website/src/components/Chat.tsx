@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { MinChatUiProvider, MessageInput, MessageContainer, MessageList } from '@minchat/react-chat-ui';
 import { useChat } from '../hooks/useChat';
 import { useUser } from '../hooks/useUser';
@@ -89,7 +89,9 @@ export function Chat({ isOpen }: ChatProps) {
     ]);
     chatMutation.mutate({ prompt: text, searchQuery: text });
   };
-  const [, ...displayedMessages] = messages.filter((m) => !!m.text);
+  // const [, ...displayedMessages] = messages.filter((m) => !!m.text);
+  // memo-ize instead
+  const [,...displayedMessages] = useMemo(() => messages.filter((m) => !!m.text), [messages]);
 
   useEffect(() => {
     const chatContainer = document.getElementById('chat-messages-container');
