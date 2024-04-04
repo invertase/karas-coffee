@@ -21,8 +21,7 @@ import { Accordion, AccordionItem } from '../../components/Accordion';
 import { useOrders } from '../../hooks/useOrders';
 import { emptyArray } from '../../utils';
 import { Skeleton } from '../../components/Skeleton';
-import { DocumentData } from 'firebase/firestore';
-import { Product } from '../../types';
+import { Purchase } from '../../types';
 import { usePurchaseHistory } from '../../hooks/usePurchaseHistory';
 import { useUser } from '../../hooks/useUser';
 
@@ -30,9 +29,11 @@ type OpenMap = { [key: string]: boolean };
 
 export function Orders() {
   const user = useUser();
+
+  const uid = user.data?.uid;
   // const orders = useOrders();
 
-  const purchaseHistory = usePurchaseHistory(['viewOrders',user.data?.uid ?? ''], user.data?.uid ?? '');
+  const purchaseHistory = usePurchaseHistory(['viewOrders',uid], uid!);
 
   const [open, setOpen] = useState<OpenMap>({});
 
@@ -63,19 +64,20 @@ export function Orders() {
             </div>
           ))}
         {orders.isSuccess &&
-          orders.data.map((item: Product) => (
+          orders.data.map((item: Purchase) => (
             <AccordionItem
-              key={item.id}
-              isOpen={open[item.id]}
-              onToggle={() => toggleOrder(item.id)}
+              key={item.product.id}
+              isOpen={open[item.product.id]}
+              onToggle={() => toggleOrder(item.product.id)}
               collapsible={
                 <div className="divide-y">
                   <div className="flex items-center">
                     <div className="flex-grow">
                       <h3 className="font-bold text-lg">Details</h3>
-                      <div className="text-sm text-gray-600">Type: {item.metadata.type}</div>
-                      <div className="text-sm text-gray-600">Price (USD): {item.metadata.price_usd}</div>
-                      <div className="text-sm text-gray-600">Weight: {item.metadata.weight}</div>
+                      <div className="text-sm text-gray-600">Type: {item.product.metadata.type}</div>
+                      <div className="text-sm text-gray-600">Price (USD): {item.product.metadata.price_usd}</div>
+                      <div className="text-sm text-gray-600">Weight: {item.product.metadata.weight}</div>
+                      <div className="text-sm text-gray-600">Quantity: {item.quantity}</div>
                     </div>
                   </div>
                 </div>
@@ -83,15 +85,15 @@ export function Orders() {
             >
               <div className="flex items-center justify-between gap-x-4">
                 <div className="flex-grow">
-                  <div className="text-lg font-bold">{item.name}</div>
-                  <div className="text-sm text-gray-600 overflow-auto break-words">{item.description}</div>
+                  <div className="text-lg font-bold">{item.product.name}</div>
+                  <div className="text-sm text-gray-600 overflow-auto break-words">{item.product.description}</div>
                 </div>
                 <div className="flex-grow flex justify-end">
-                  {!!item.images?.length && (
+                  {!!item.product.images?.length && (
                     <div className="flex">
                       <img
-                        src={item.images[0]}
-                        alt={`Image of ${item.name}`}
+                        src={item.product.images[0]}
+                        alt={`Image of ${item.product.name}`}
                         className="w-20 h-14 mr-2 object-cover rounded"
                       />
                     </div>

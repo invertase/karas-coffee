@@ -15,22 +15,23 @@
  */
 
 import { useFirestoreQueryData } from '@react-query-firebase/firestore';
-import { query, QueryConstraint, Query } from 'firebase/firestore';
+import { query, QueryConstraint, Query, where, orderBy, limit } from 'firebase/firestore';
 import { QueryKey, UseQueryResult } from 'react-query';
 import { collections } from '../firebase';
-import { Product } from '../types';
+import { Product, Purchase } from '../types';
 
 function isQueryConstraints(value: unknown): value is QueryConstraint[] {
   return Array.isArray(value);
 }
 
-export function usePurchaseHistory(key: QueryKey, uid?: string): UseQueryResult<Product[]> {
-  const collection = uid ? collections.purchaseHistory(uid) : collections.products;
-  let ref: Query<Product>;
+export function usePurchaseHistory(key: QueryKey, uid: string): UseQueryResult<Purchase[]> {
 
-  ref = query(collection);
+  const collection = collections.purchaseHistory(uid!);
+  let ref: Query<Purchase>;
 
-  return useFirestoreQueryData<Product>(
+  ref = query(collection, orderBy('date', 'desc'), limit(4));
+
+  return useFirestoreQueryData<Purchase>(
     key,
     ref,
     {

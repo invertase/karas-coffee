@@ -21,7 +21,7 @@ import { ref, uploadBytes } from 'firebase/storage';
 
 import { collections, firestore, functions, storage } from '../firebase';
 import { useUser } from './useUser';
-import { Product } from '../types';
+import { Product, Purchase } from '../types';
 import { httpsCallable } from 'firebase/functions';
 import { usePurchaseHistory } from './usePurchaseHistory';
 
@@ -30,7 +30,7 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
   const user = useUser();
 
   const uid = user.data?.uid;
-  const purchaseHistoryResult = usePurchaseHistory(['purchaseHistory', uid], uid);
+  const purchaseHistoryResult = usePurchaseHistory(['purchaseHistory', uid], uid!);
 
   return useMutation(
     async ({ prompt, searchQuery }: { prompt?: string; searchQuery?: string }) => {
@@ -42,7 +42,7 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
       const uid = user.data.uid;
       const documentRef = doc(firestore, 'customers', uid);
 
-      let purchaseHistory: Product[] = [];
+      let purchaseHistory: Purchase[] = [];
 
       if (purchaseHistoryResult.data) {
         purchaseHistory = purchaseHistoryResult.data;
@@ -113,7 +113,7 @@ async function getContext({
   purchaseHistory,
 }: {
   vectorSearchResults?: Product[];
-  purchaseHistory?: Product[];
+  purchaseHistory?: Purchase[];
 }) {
   const currentRoute = window.location.pathname;
 
@@ -130,23 +130,17 @@ async function getContext({
 
     context += `
     Here are the products that match the customer's search: \\n
-    ---\\n
-    NAME, TYPE, DESCRIPTION, PRICE, ORIGIN, STRENGTH, VARIETY \\n
     ${formattedVectorSearchResults}\\n
-    ---\\n
     `;
   }
 
   if (purchaseHistory && purchaseHistory.length > 0) {
-    const formattedPurchaseHistory = formatProducts(purchaseHistory.slice(0, 4));
+    const formattedPurchaseHistory = formatPurchases(purchaseHistory.slice(0, 4));
 
     context += `
     \\n
     These are the customers previous purchases: \\n
-    ---\\n
-    NAME, TYPE, DESCRIPTION, PRICE, ORIGIN, STRENGTH, VARIETY \\n
     ${formattedPurchaseHistory} \\n
-    ---\\n
     `;
   }
 
@@ -177,12 +171,23 @@ async function getContext({
 
 const formatProducts = (products: Product[]) =>
   products
-    .map(
-      ({ name, metadata, description }) =>
-        `${name}, ${metadata.type}, ${description}, ${metadata.price_usd}, ${
-          metadata.type !== 'coffee' ? 'N/A' : metadata.origin
-        }, ${metadata.type !== 'coffee' ? 'N/A' : metadata.strength},${
-          metadata.type !== 'coffee' ? 'N/A' : metadata.variety
-        }`,
-    )
-    .join('\\n');
+    .map(({ name, metadata, description }) => {
+      const coffeeDetails = metadata.type === 'coffee' ? 
+        `, Origin: ${metadata.origin}, Strength: ${metadata.strength}, Variety: ${metadata.variety}` : 
+        '';
+      return `Product: ${name}, Type: ${metadata.type}, Description: ${description}, Price: $${metadata.price_usd}${coffeeDetails}.`;
+    })
+    .join('\n\n');
+
+
+
+    const formatPurchases = (purchases: Purchase[]) =>
+    purchases
+      .map(({ product, quantity }) => {
+        const { name, metadata, description } = product;
+        const coffeeDetails = metadata.type === 'coffee' ? 
+          `, Origin: ${metadata.origin}, Strength: ${metadata.strength}, Variety: ${metadata.variety}` : 
+          '';
+        return `Purchase: ${name}, Quantity: ${quantity}, Type: ${metadata.type}, Description: ${description}, Price: $${metadata.price_usd}${coffeeDetails}.`;
+      })
+      .join('\n\n');

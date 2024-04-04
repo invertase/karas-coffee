@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { addDoc, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
+import { addDoc, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router';
 
 import { collections } from '../firebase';
@@ -97,10 +97,9 @@ export function useCheckout(): {
         for (const item of session.cart) {
           try {
             await addDoc(purchaseHistory, {
-              ...item,
-              //@ts-ignore
+              product: item,
               quantity: item['quantity'],
-              created: new Date().toISOString(),
+              date: serverTimestamp(),
             });
           } catch (e) {
             console.error("Error adding purchase history "+ uid )

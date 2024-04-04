@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { DocumentData, FirestoreDataConverter, Timestamp } from 'firebase/firestore';
-import { Product, Customer, Session, Review, Subscription, Content, Address } from '../types';
+import { DocumentData, Firestore, FirestoreDataConverter, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { Product, Customer, Session, Review, Subscription, Content, Address, Purchase } from '../types';
 
 export const productConverter: FirestoreDataConverter<Product> = {
   fromFirestore(snapshot): Product {
@@ -45,45 +45,53 @@ export const productConverter: FirestoreDataConverter<Product> = {
   },
 };
 
-export const purchaseHistoryConverter: FirestoreDataConverter<Product> = {
-  fromFirestore(snapshot): Product {
-    const data = snapshot.data();
+export const purchaseHistoryConverter: FirestoreDataConverter<Purchase> = {
+  fromFirestore(snapshot): Purchase {
+    const {product, date, quantity} = snapshot.data();
 
     return {
-      id: snapshot.id,
-      name: data.name || '',
-      role: data.role,
-      tax_code: data.tax_code,
-      active: !!data.active,
-      description: data.description || '',
-      images: data.images || [],
-      metadata: {
-        type: data.metadata?.type ?? '',
-        origin: data.metadata?.origin ?? '',
-        strength: data.metadata?.strength ?? '',
-        variety: data.metadata?.variety ?? '',
-        price: data.metadata?.price ?? '',
-        price_usd: data.metadata?.price_usd ?? '',
-        weight: data.metadata?.weight ?? '0g',
+      date,
+      quantity,
+      product: {
+        id: snapshot.id,
+        name: product.name || '',
+        role: product.role,
+        tax_code: product.tax_code,
+        active: !!product.active,
+        description: product.description || '',
+        images: product.images || [],
+        metadata: {
+          type: product.metadata?.type ?? '',
+          origin: product.metadata?.origin ?? '',
+          strength: product.metadata?.strength ?? '',
+          variety: product.metadata?.variety ?? '',
+          price: product.metadata?.price ?? '',
+          price_usd: product.metadata?.price_usd ?? '',
+          weight: product.metadata?.weight ?? '0g',
+        },
       },
     };
   },
-  toFirestore(product: Product) {
+  toFirestore(purchase: Omit<Purchase, 'data'>) {
     return {
-      name: product.name,
-      role: product.role,
-      tax_code: product.tax_code,
-      active: product.active,
-      description: product.description,
-      images: product.images,
-      metadata: {
-        type: product.metadata.type,
-        origin: product.metadata.type === 'coffee' ? product.metadata.origin : null,
-        strength: product.metadata.type === 'coffee' ? product.metadata.strength : null,
-        variety: product.metadata.type === 'coffee' ? product.metadata.variety : null,
-        price: product.metadata.price,
-        price_usd: product.metadata.price_usd,
-        weight: product.metadata.weight,
+      date: purchase.date,
+      quantity: purchase.quantity,
+      product: {
+        name: purchase.product.name,
+        role: purchase.product.role,
+        tax_code: purchase.product.tax_code,
+        active: purchase.product.active,
+        description: purchase.product.description,
+        images: purchase.product.images,
+        metadata: {
+          type: purchase.product.metadata.type,
+          origin: purchase.product.metadata.type === 'coffee' ? purchase.product.metadata.origin : null,
+          strength: purchase.product.metadata.type === 'coffee' ? purchase.product.metadata.strength : null,
+          variety: purchase.product.metadata.type === 'coffee' ? purchase.product.metadata.variety : null,
+          price: purchase.product.metadata.price,
+          price_usd: purchase.product.metadata.price_usd,
+          weight: purchase.product.metadata.weight,
+        },
       },
     };
   },
@@ -239,16 +247,14 @@ export const addressConverter: FirestoreDataConverter<Address> = {
   fromFirestore(snapshot) {
     const data = snapshot.data();
 
-    const validity = ['PREMISE','SUB_PREMISE'].includes(data?.addressValidity?.verdict) ? true : false;
-
-
+    const validity = ['PREMISE', 'SUB_PREMISE'].includes(data?.addressValidity?.verdict) ? true : false;
 
     return {
       id: snapshot.id,
       name: data.name,
       address: data.address,
       appAddress: data.appAddress,
-      validity
+      validity,
     };
   },
   toFirestore(data): DocumentData {

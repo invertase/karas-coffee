@@ -19,6 +19,12 @@ import { CartItem } from './hooks/useCart';
 
 export type ProductType = 'swag' | 'coffee' | 'subscription';
 
+export type Purchase = {
+  quantity: number;
+  product: Product;
+  date: Timestamp;
+};
+
 type ProductRecord = {
   id: string;
   active: boolean;
