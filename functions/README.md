@@ -11,6 +11,8 @@ and sends a welcome email to the new user.
 
 This function triggers on new order create and sends an initial order update SMS to the user (if they've setup a phone number on their account) via the [Twilio Send Message](https://github.com/twilio-labs/twilio-firebase-extensions/tree/main/firestore-send-twilio-message) extension by writing to the `messages` collection on Cloud Firestore.
 
+**⚠️ Twilio integration is currently disabled for purposes of the demo. To see information on how Twilio works, you can visit their [docs](https://www.twilio.com/docs/messaging/guides/guide-to-using-the-twilio-virtual-phone).**
+
 ### `deleteUserData`
 
 This scheduled function deletes all user data every 24 hours - useful only for the purpose of this demo.
