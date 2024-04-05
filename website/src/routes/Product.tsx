@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { XIcon } from '@heroicons/react/solid';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -31,7 +31,14 @@ import { emptyArray } from '../utils';
 import { WriteReviewCard } from '../components/WriteReviewCard';
 import { useUser } from '../hooks/useUser';
 import { Alert } from '../components/Alert';
-
+import { Heading } from '../components/Heading';
+import { ProductCard, ProductCardSkeleton } from '../components/ProductCard';
+import { Product as ProductType } from '../types';
+import { useVectorSearch } from '../hooks/useVectorSearch';
+import { useFirestoreDocumentData } from '@react-query-firebase/firestore';
+import { collections } from '../firebase';
+import { doc } from 'firebase/firestore';
+import { Share } from '../components/Share';
 export function Product() {
   const user = useUser();
   const { id } = useParams();
@@ -98,16 +105,17 @@ export function Product() {
               {!cartItem && (
                 <Button
                   onClick={() => {
-                    if (user.data) {
-                      addToCart(product.data!);
-                    } else {
-                      navigate('/signin');
-                    }
+                    // if (user.data) {
+                    addToCart(product.data!);
+                    // } else {
+                    // navigate('/signin');
+                    // }
                   }}
                 >
                   Add to cart
                 </Button>
               )}
+              <Share product={product.data} />
             </div>
           </div>
         </div>
@@ -117,6 +125,7 @@ export function Product() {
           pid={product.data.id}
           query={product.data.description}
           title="You might also like"
+          // @ts-ignore
           type={product.data.metadata.type}
         />
       </section>
@@ -199,7 +208,11 @@ function ListReviews({ productId }: { productId: string }) {
   return (
     <div className="mt-12">
       <h2 className="mb-4 text-3xl font-extrabold tracking-wide">Reviews</h2>
-      <Alert type="warning">{isAnonymous ? 'Please sign in to see your reviews.' : 'For this demo application, only your own reviews are currently visible.'}</Alert>
+      <Alert type="warning">
+        {isAnonymous
+          ? 'Please sign in to see your reviews.'
+          : 'For this demo application, only your own reviews are currently visible.'}
+      </Alert>
       <div className="divide-y">
         {reviews.status === 'loading' && emptyArray(5).map((_, i) => wrapper(<ReviewCardSkeleton />, `${i}`))}
         {reviews.status === 'success' && (
@@ -217,25 +230,17 @@ function ListReviews({ productId }: { productId: string }) {
   );
 }
 
-import { limit, where, query as firestoreQuery } from '@firebase/firestore';
-import { Heading } from '../components/Heading';
-import { ProductCard, ProductCardSkeleton } from '../components/ProductCard';
-import { ProductType } from '../types';
-import { useVectorSearch } from '../hooks/useVectorSearch';
-import { useFirestoreQuery, useFirestoreQueryData } from '@react-query-firebase/firestore';
-import { collections } from '../firebase';
-
-type RecommendationsProps = {
+interface RecommendationsProps {
   title: string;
   query: string;
   pid: string;
   type: ProductType;
-};
+}
 
 function Recommendations({ title, query, pid }: RecommendationsProps) {
   // todo: use vector search here
 
-  const products = useVectorSearch('recommendations',query, 5);
+  const products = useVectorSearch('recommendations', query, 5);
 
   if (products.isLoading || products.isError) {
     return (
