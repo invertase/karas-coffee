@@ -87,7 +87,7 @@ export function App() {
           )}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <Chat isOpen={chatOpened} />
+        {!!user.data && <Chat isOpen={chatOpened} />}
       </main>
       <Footer />
     </>
