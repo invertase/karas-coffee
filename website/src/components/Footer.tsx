@@ -34,37 +34,73 @@ export function Footer() {
           <Heading>Extensions</Heading>
           <ul role="list" className="mt-4 space-y-4">
             <li>
-              <Link to="https://firebase.google.com/products/extensions/delete-user-data">Delete User Data</Link>
-            </li>
-            <li>
-              <Link to="https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-bundle-server">
-                Firestore Bundle Server
+              <Link to="https://extensions.dev/extensions/googlecloud/firestore-genai-chatbot">
+                Build Chatbot with the Gemini API
               </Link>
             </li>
             <li>
-              <Link to="https://firebase.google.com/products/extensions/firestore-algolia-search">
-                Firestore Algolia Search
+              <Link to="https://extensions.dev/extensions/googlecloud/firestore-genai-chatbot">
+                Vector Search with Firestore
               </Link>
             </li>
             <li>
-              <Link to="https://firebase.google.com/products/extensions/firestore-send-email">
-                Firestore Send Email
+              <Link to="https://extensions.dev/extensions/firebase/firestore-backup-restore">
+                Backup and Restore Firestore
               </Link>
             </li>
             <li>
-              <Link to="https://firebase.google.com/products/extensions/firestore-stripe-subscriptions">
-                Firestore Stripe Subscriptions
+              <Link to="https://extensions.dev/extensions/firebase/delete-user-data">Delete User Data</Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/firebase/firestore-bundle-builder">
+                Firestore Bundle Builder
               </Link>
             </li>
             <li>
-              <Link to="https://github.com/conversationai/firestore-perspective-toxicity">
-                Firestore Perspective Toxicity
+              <Link to="https://extensions.dev/extensions/algolia/firestore-algolia-search">
+                Search Firestore with Algolia
               </Link>
             </li>
             <li>
-              <Link to="https://github.com/googlemaps/gmp-firebase-extensions/tree/main/firestore-validate-address">
-                Google Maps Platform - Validate Address in Firestore
+              <Link to="https://extensions.dev/extensions/firebase/firestore-send-email">
+                Trigger Email from Firestore
               </Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/invertase/firestore-stripe-payments">
+                Run Payments with Stripe
+              </Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/jigsaw/firestore-perspective-toxicity">
+                Analyze Comment Toxicity with Perspective API
+              </Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/firebase/firestore-bigquery-export">
+                Stream Firestore to BigQuery
+              </Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/mailchimp/mailchimp-firebase-sync">
+                Manage Marketing with Mailchimp
+              </Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/googlemapsplatform/firestore-validate-address">
+                Validate Address in Firestore
+              </Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/firebase/storage-resize-images">Resize Images</Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/firebase/firestore-shorten-urls-bitly">
+                Shorten URLs with Bitly
+              </Link>
+            </li>
+            <li>
+              <Link to="https://extensions.dev/extensions/twilio/send-message">Send Messages with Twilio</Link>
             </li>
           </ul>
         </div>

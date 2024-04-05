@@ -38,9 +38,11 @@ async function bootstrap(): Promise<void> {
   });
 
   // Define any bundles to pre-load.
-  // const bundles = await Promise.all([fetch('/bundles/shop')]);
-  // // Load the bundles into Firestore.
-  // await Promise.all(bundles.map((bundle) => loadBundle(firestore, bundle.body!)));
+  const bundles = await Promise.all([fetch('/bundles/shop')]);
+  // Load the bundles into Firestore.
+  const bodies = bundles.map((bundle) => bundle.body!)
+
+  await Promise.all(bodies.map((body) => loadBundle(firestore, body)));
 }
 
 bootstrap().then(() => {

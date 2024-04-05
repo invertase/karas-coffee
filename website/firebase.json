@@ -9,7 +9,7 @@
     "rewrites": [
       {
         "source": "/bundles/*",
-        "function": "ext-firestore-bundle-server-serve"
+        "function": "ext-firestore-bundle-builder-serve"
       },
       {
         "source": "**",

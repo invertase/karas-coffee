@@ -21,10 +21,10 @@ import react from '@vitejs/plugin-react-refresh';
 export default defineConfig({
   plugins: [react()],
   server: {
-    // proxy: {
-    //   // Enables the same proxy as Firebase Hosting creates, but for local development.
-    //   '/bundles/shop':
-    //     'https://us-central1-karas-coffee-invertase.cloudfunctions.net/ext-firestore-bundle-builder-serve/shop',
-    // },
+    proxy: {
+      // Enables the same proxy as Firebase Hosting creates, but for local development.
+      '/bundles/shop':
+        'https://us-central1-karas-coffee-invertase.cloudfunctions.net/ext-firestore-bundle-builder-serve/shop',
+    },
   },
 });
