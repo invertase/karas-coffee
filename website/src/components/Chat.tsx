@@ -67,16 +67,16 @@ export function Chat({ isOpen }: ChatProps) {
       //@ts-ignore TODO: fix this
       const transformedMessages = chat.data.map(firestoreMessageToMessage).flat();
 
-      if (transformedMessages.length >= messages.length) {
 
       setMessages(transformedMessages);
-      }
+
     }
   }, [chat.isSuccess,chat.data]);
 
   useEffect(() => {
     if (!isOpen) {
       try {
+        console.log('resetting chat')
         chatMutation.mutate({reset: true});
       } catch (e) {}
     }
@@ -135,17 +135,18 @@ export function Chat({ isOpen }: ChatProps) {
   return (
     <div className={['/signin', '/forgot-password', '/register'].includes(location.pathname) ? 'hidden' : 'invisible lg:visible'}>
       <div
-        className={`w-1/3 fixed bg-gray-300 p-1 h-[calc(100vh-5rem)] rounded top-20 -right-3 z-1000 transition duration-700 ${
+        className={`w-1/3 fixed bg-gray-300 h-[calc(100vh-5rem)] rounded top-20 -right-4 z-1000 transition duration-700 ${
           isOpen ? 'translate-x-[0%]' : 'translate-x-[100%]'
         }`}
       >
-        <div id="chat-container" className="w-auto h-full flex flex-col">
+        <div id="chat-container" className="w-full h-full flex flex-col">
           <MinChatUiProvider theme="#6ea9d7" colorSet={myColorSet}>
             {/* Chat message list container grows to fill available space, pushing input to bottom */}
-            <div id="chat-messages-container" className="flex-grow overflow-y-scroll bg-[#111827] mr-[12px]">
+            <div id="chat-messages-container" className="w-full flex-grow overflow-y-scroll bg-[#111827] p-0">
               <ChatMessagesList isTyping={isTyping()} messages={displayedMessages} />
             </div>
             {/* Message input stays at the bottom */}
+            <div className="pr-1">
             <MessageInput
               placeholder="Type message here"
               showSendButton
@@ -153,6 +154,7 @@ export function Chat({ isOpen }: ChatProps) {
               onSendMessage={handleSendMessage}
               disabled={!user.isSuccess || !user.data}
             />
+            </div>
           </MinChatUiProvider>
         </div>
       </div>
@@ -162,7 +164,7 @@ export function Chat({ isOpen }: ChatProps) {
 
 const ChatMessagesList = ({ isTyping, messages }: { isTyping: boolean; messages: Message[] }) => {
   return (
-    <div className="flex flex-col-reverse overflow-auto">
+    <div className="flex flex-col-reverse overflow-auto bg-[#111827]">
       <ul className="space-y-2 p-4">
         {messages.map((message, index) => (
           <li
@@ -212,7 +214,7 @@ const colors = {
 
 const myColorSet = {
   // input
-  '--input-background-color': colors.themeLighterDark,
+  '--input-background-color': colors.themeDark,
   '--input-text-color': colors.lightGrayText,
   '--input-element-color': colors.themeLightGray,
   '--input-attach-color': colors.themeMediumGray,

@@ -3,7 +3,16 @@ import { collections, functions } from '../firebase';
 import { getDocs, limit, query, where } from 'firebase/firestore';
 import { useFirestoreQueryData } from '@react-query-firebase/firestore';
 
-export function useVectorSearch(key: string,queryString: string, queryLimit: number) {
+export function useVectorSearch(key: string | string[],queryString: string, queryLimit: number) {
+
+  let queryKey: string[];
+  if (typeof key === 'string') {
+    queryKey = [key];
+  } else {
+    queryKey = key;
+  }
+
+
   const vectorSearchResults = useFunctionsQuery<
     {
       query: string;
@@ -11,7 +20,7 @@ export function useVectorSearch(key: string,queryString: string, queryLimit: num
     },
     string[]
   >(
-    ['concierge', queryString,queryLimit],
+    ['vectorSearch',...queryKey],
     functions,
     'ext-firestore-vector-search-queryCallable',
     {
@@ -29,7 +38,7 @@ export function useVectorSearch(key: string,queryString: string, queryLimit: num
   const q = (ids && ids.length>0) ? query(collections.products, where('id', 'in', ids)) : query(collections.products)
 
   const results = useFirestoreQueryData(
-    [key],
+    ['vectorSearchQueryData',...queryKey],
     q,
     {},
     {

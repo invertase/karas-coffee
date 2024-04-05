@@ -240,7 +240,7 @@ interface RecommendationsProps {
 function Recommendations({ title, query, pid }: RecommendationsProps) {
   // todo: use vector search here
 
-  const products = useVectorSearch('recommendations', query, 5);
+  const products = useVectorSearch(['recommendations',query],query, 5);
 
   if (products.isLoading || products.isError) {
     return (

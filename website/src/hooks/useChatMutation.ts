@@ -45,14 +45,34 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
 
   return useMutation(
     async ({ prompt, searchQuery, reset }: { prompt?: string; searchQuery?: string; reset?: boolean }) => {
+
+      
+
       // Soft validation - the Firestore security rules ensure they are
       // authenticated.
       if (!user.data) {
         return;
       }
+      
       const isAnon = user.data.isAnonymous;
       const uid = user.data.uid;
       const documentRef = doc(firestore, 'customers', uid);
+
+      if (reset) {
+        // clear chat collection
+        const chatCollection = await getDocs(collections.chat(uid));
+
+        chatCollection.forEach(async (doc) => {
+          await deleteDoc(doc.ref);
+        });
+
+        await addDoc(collections.chat(uid), {
+          prompt: 'Hi!',
+        });
+        client.invalidateQueries(['chat', user.data?.uid]);
+        return documentRef.id;
+      }
+
 
       let purchaseHistory: Purchase[] = [];
 
@@ -78,19 +98,6 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
         },
         { merge: true },
       );
-
-      if (reset) {
-        // clear chat collection
-        const chatCollection = await getDocs(collections.chat(uid));
-
-        chatCollection.forEach(async (doc) => {
-          await deleteDoc(doc.ref);
-        });
-
-        await addDoc(collections.chat(uid), {
-          prompt: 'Hi!',
-        });
-      }
 
       if (prompt) {
         await addDoc(collections.chat(uid), {
