@@ -15,11 +15,11 @@
  */
 
 import React, { useState } from 'react';
-import { Route, Routes, useRoutes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { Acknowledgement } from './components/Acknowledgement';
+// import { Acknowledgement } from './components/Acknowledgement';
 
 import { useUser } from './hooks/useUser';
 
@@ -40,6 +40,8 @@ import { Content } from './routes/Content/Content';
 import { Shipping } from './routes/Checkout/Shipping';
 import { Alert } from './components/Alert';
 import { Chat } from './components/Chat';
+
+
 export function App() {
   const user = useUser();
 
