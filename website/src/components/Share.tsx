@@ -32,10 +32,10 @@ export function Share({ product }: { product: Product }) {
         }`}
         aria-label="Share URL"
       >
-        <p className={`transition duration-500 ease-out ${copySuccess ? `text-green-500` : ``}`}>{encodedUrl}</p>
+        <p className={`transition duration-500 ease-[cubic-bezier(0.05,0.05,0.795,0.035)] ${copySuccess ? `text-green-500` : ``}`}>{encodedUrl}</p>
         <button
           onClick={copyToClipboard}
-          className={`ml-2 p-2 hover:bg-gray-100 rounded transition duration-500 ease-out ${
+          className={`ml-2 p-2 hover:bg-gray-100 rounded transition duration-500 ease-[cubic-bezier(0.05,0.05,0.795,0.035)] ${
             copySuccess ? `text-green-500` : `text-gray-500`
           }`}
           title="Copy to clipboard"
@@ -46,12 +46,12 @@ export function Share({ product }: { product: Product }) {
       <div className="flex items-right space-x-4 pl-4">
         <button
           onClick={copyToClipboard}
-          className={`sm:hidden ml-2 rounded hover:bg-gray-200 text-black h-10 w-10 items-center justify-center flex border border-gray-300 border-2 transition duration-500 ease-out ${
-            copySuccess ? `text-green-500` : `text-gray-500`
+          className={`sm:hidden ml-2 rounded  hover:bg-gray-200 text-black h-10 w-10 items-center justify-center flex border border-gray-300 border-2 transition duration-500 ease-out ${
+            copySuccess ? `text-green-500` : `opacity-75 text-gray-500`
           }`}
           title="Copy to clipboard"
         >
-          <ClipboardCopyIcon className="h-8 w-8" aria-hidden="true" />
+          <ClipboardCopyIcon className={`h-8 w-8 opacity-75 transition duration-200 ease-[cubic-bezier(0.05,0.05,0.795,0.035)] ${copySuccess ? "text-green-500" : ""}`} aria-hidden="true" />
         </button>
         <a
           href={`mailto:?subject=Check this out&body=Check out this amazing Kara's Coffee product: ${encodedUrl}`}
