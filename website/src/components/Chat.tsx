@@ -1,12 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { MinChatUiProvider, MessageInput, MessageContainer, MessageList } from '@minchat/react-chat-ui';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useChat } from '../hooks/useChat';
 import { useUser } from '../hooks/useUser';
 import { useChatMutation } from '../hooks/useChatMutation';
 import { useLocation } from 'react-router-dom';
 import { AnimatedDots } from './AnimatedDots';
-import { getDocs } from 'firebase/firestore';
-import { collections } from '../firebase';
 
 type FirestoreMessage = {
   prompt: string;
@@ -67,22 +64,21 @@ export function Chat({ isOpen }: ChatProps) {
       //@ts-ignore TODO: fix this
       const transformedMessages = chat.data.map(firestoreMessageToMessage).flat();
 
-
       setMessages(transformedMessages);
-
     }
-  }, [chat.isSuccess,chat.data]);
+  }, [chat.isSuccess, chat.data]);
 
   useEffect(() => {
     if (!isOpen) {
       try {
-        console.log('resetting chat')
-        chatMutation.mutate({reset: true});
+        console.log('resetting chat');
+        chatMutation.mutate({ reset: true });
       } catch (e) {}
     }
   }, [isOpen]);
 
   const handleSendMessage = (text: string) => {
+    if (isTyping()) return;
     // Optimistically update the UI with the new message
     const optimisticMessage = {
       text,
@@ -91,10 +87,10 @@ export function Chat({ isOpen }: ChatProps) {
         name: 'User',
       },
     };
-  
+
     // Update state immediately to include the new message
     setMessages((currentMessages) => [...currentMessages, optimisticMessage]);
-  
+
     // Perform the mutation
     chatMutation.mutate(
       { prompt: text, searchQuery: text },
@@ -107,17 +103,15 @@ export function Chat({ isOpen }: ChatProps) {
         onError: (error) => {
           // Handle any error by possibly reverting the optimistic update
           // This is simplified; in practice, you might want to show an error message or perform other actions
-          setMessages((currentMessages) =>
-            currentMessages.filter((message) => message !== optimisticMessage),
-          );
+          setMessages((currentMessages) => currentMessages.filter((message) => message !== optimisticMessage));
           console.error('Error sending message:', error);
         },
-      }
+      },
     );
   };
   // const [, ...displayedMessages] = messages.filter((m) => !!m.text);
   // memo-ize instead
-  const [,...displayedMessages] = useMemo(() => messages.filter((m) => !!m.text), [messages]);
+  const [, ...displayedMessages] = useMemo(() => messages.filter((m) => !!m.text), [messages]);
 
   useEffect(() => {
     const chatContainer = document.getElementById('chat-messages-container');
@@ -133,34 +127,93 @@ export function Chat({ isOpen }: ChatProps) {
   };
 
   return (
-    <div className={['/signin', '/forgot-password', '/register'].includes(location.pathname) ? 'hidden' : 'invisible lg:visible'}>
+    <div
+      className={
+        ['/signin', '/forgot-password', '/register'].includes(location.pathname) ? 'hidden' : 'invisible lg:visible'
+      }
+    >
       <div
         className={`w-1/3 fixed bg-gray-300 h-[calc(100vh-5rem)] rounded top-20 -right-4 z-1000 transition duration-700 ${
           isOpen ? 'translate-x-[0%]' : 'translate-x-[100%]'
         }`}
       >
         <div id="chat-container" className="w-full h-full flex flex-col">
-          <MinChatUiProvider theme="#6ea9d7" colorSet={myColorSet}>
-            {/* Chat message list container grows to fill available space, pushing input to bottom */}
-            <div id="chat-messages-container" className="w-full flex-grow overflow-y-scroll bg-[#111827] p-0">
-              <ChatMessagesList isTyping={isTyping()} messages={displayedMessages} />
-            </div>
-            {/* Message input stays at the bottom */}
-            <div className="pr-1">
+          <div id="chat-messages-container" className="w-full flex-grow overflow-y-scroll bg-[#111827] p-0">
+            <ChatMessagesList isTyping={isTyping()} messages={displayedMessages} />
+          </div>
+          <div className="pr-1">
             <MessageInput
               placeholder="Type message here"
               showSendButton
-              showAttachButton={false}
               onSendMessage={handleSendMessage}
-              disabled={!user.isSuccess || !user.data}
+              disabled={!user.isSuccess || !user.data || isTyping()}
             />
-            </div>
-          </MinChatUiProvider>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+interface MessageInputProps {
+  placeholder: string;
+  showSendButton: boolean;
+  onSendMessage: (text: string) => void;
+  disabled: boolean;
+}
+
+const MessageInput: React.FC<MessageInputProps> = ({ placeholder, showSendButton, onSendMessage, disabled }) => {
+  const [message, setMessage] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null); // Create a ref for the input element
+
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      onSendMessage(message);
+      setMessage(''); // Reset input after sending
+      inputRef.current?.focus();
+    }
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && !event.shiftKey && !disabled) {
+      event.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  return (
+    <div className="w-full flex items-center p-4 bg-[#111827] shadow rounded-md">
+      <input
+        ref={inputRef}
+        className="p-2 h-12 form-textarea mt-1 flex-1 mr-2 rounded-md border-gray-300 shadow-sm focus:outline-none"
+        placeholder={placeholder}
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyPress}
+      />
+      {showSendButton && (
+        <button
+          className={`flex-none p-4 font-semibold text-white rounded shadow cursor-pointer ${
+            disabled || !message.trim() ? 'cursor-not-allowed' : ''
+          }`}
+          onClick={handleSendMessage}
+          disabled={disabled || !message.trim()}
+        >
+          <svg
+            fill={disabled || !message.trim() ? 'white' : 'green'}
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            viewBox="0 0 512 512"
+          >
+            <path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480V396.4c0-4 1.5-7.8 4.2-10.7L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+};
+
 
 const ChatMessagesList = ({ isTyping, messages }: { isTyping: boolean; messages: Message[] }) => {
   return (
@@ -184,87 +237,4 @@ const ChatMessagesList = ({ isTyping, messages }: { isTyping: boolean; messages:
       </ul>
     </div>
   );
-};
-
-const colors = {
-  // Theme Colors
-  themeDark: '#111827',
-  themeLighterDark: '#1E293B',
-  themeLightGray: '#D1D5DB',
-  themeMediumGray: '#9CA3AF',
-  themeDarkGray: '#6B7280',
-  themeDarkerGray: '#2D3748',
-  themeDividerGray: '#374151',
-  themeLastActiveGray: '#4B5563',
-
-  // Text Colors
-  lightGrayText: '#1F2937',
-
-  // Element Colors
-  lightBlueElement: '#3B82F6',
-  lighterBlueForElements: '#D1D5DB',
-
-  // Accent Colors
-  greenAccent: '#10B981',
-
-  // Placeholder & Other Specific Uses
-  mediumGrayForAttachments: '#9CA3AF',
-  darkGrayForPlaceholders: '#6B7280',
-};
-
-const myColorSet = {
-  // input
-  '--input-background-color': colors.themeDark,
-  '--input-text-color': colors.lightGrayText,
-  '--input-element-color': colors.themeLightGray,
-  '--input-attach-color': colors.themeMediumGray,
-  '--input-send-color': colors.greenAccent,
-  '--input-placeholder-color': colors.themeDarkGray,
-
-  // message header
-  '--message-header-background-color': colors.lightGrayText,
-  '--message-header-text-color': colors.themeLightGray,
-  '--message-header-last-active-color': colors.themeLastActiveGray,
-  '--message-header-back-color': colors.themeMediumGray,
-
-  // chat list header
-  '--chatlist-header-background-color': colors.themeDark,
-  '--chatlist-header-text-color': colors.themeLightGray,
-  '--chatlist-header-divider-color': colors.themeDividerGray,
-
-  // chatlist
-  '--chatlist-background-color': colors.themeDark,
-  '--no-conversation-text-color': colors.themeLightGray,
-
-  // chat item
-  '--chatitem-background-color': colors.themeLighterDark,
-  '--chatitem-selected-background-color': colors.themeDividerGray,
-  '--chatitem-title-text-color': colors.themeLightGray,
-  '--chatitem-content-text-color': colors.themeMediumGray,
-  '--chatitem-hover-color': colors.themeDarkerGray,
-
-  // main container
-  '--container-background-color': colors.themeDark,
-
-  // loader
-  '--loader-color': colors.themeLastActiveGray,
-
-  // message list
-  '--messagelist-background-color': colors.themeDark,
-  '--no-message-text-color': colors.themeLightGray,
-
-  // incoming message
-  '--incoming-message-text-color': colors.themeLightGray,
-  '--incoming-message-name-text-color': colors.themeMediumGray,
-  '--incoming-message-background-color': colors.themeLighterDark,
-  '--incoming-message-timestamp-color': colors.themeDarkGray,
-  '--incoming-message-link-color': colors.lightBlueElement,
-
-  // outgoing message
-  '--outgoing-message-text-color': colors.themeLightGray,
-  '--outgoing-message-background-color': colors.themeLighterDark,
-  '--outgoing-message-timestamp-color': colors.themeMediumGray,
-  '--outgoing-message-checkmark-color': colors.themeLighterDark,
-  '--outgoing-message-loader-color': colors.themeMediumGray,
-  '--outgoing-message-link-color': colors.lightBlueElement,
 };
