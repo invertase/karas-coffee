@@ -25,6 +25,22 @@ export type Purchase = {
   date: Timestamp;
 };
 
+export type FirestoreMessage = {
+  prompt: string;
+  response?: string;
+  status: {
+    state: 'ERROR' | 'COMPLETED' | 'PROCESSING';
+  };
+};
+
+export type Message = {
+  text: string;
+  user: {
+    id: string;
+    name: string;
+  };
+};
+
 type ProductRecord = {
   id: string;
   active: boolean;

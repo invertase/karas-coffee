@@ -32,7 +32,7 @@ import { ref, uploadBytes } from 'firebase/storage';
 
 import { collections, firestore, functions, storage } from '../firebase';
 import { useUser } from './useUser';
-import { Product, Purchase } from '../types';
+import { FirestoreMessage, Message, Product, Purchase } from '../types';
 import { httpsCallable } from 'firebase/functions';
 import { usePurchaseHistory } from './usePurchaseHistory';
 
@@ -43,17 +43,16 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
   const uid = user.data?.uid;
   const purchaseHistoryResult = usePurchaseHistory(['purchaseHistory', uid], uid!);
 
+  const queryKey = ['chat', user.data?.uid];
+
   return useMutation(
     async ({ prompt, searchQuery, reset }: { prompt?: string; searchQuery?: string; reset?: boolean }) => {
-
-      
-
       // Soft validation - the Firestore security rules ensure they are
       // authenticated.
       if (!user.data) {
         return;
       }
-      
+
       const isAnon = user.data.isAnonymous;
       const uid = user.data.uid;
       const documentRef = doc(firestore, 'customers', uid);
@@ -69,10 +68,9 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
         await addDoc(collections.chat(uid), {
           prompt: 'Hi!',
         });
-        client.invalidateQueries(['chat', user.data?.uid]);
+        client.invalidateQueries(queryKey);
         return documentRef.id;
       }
-
 
       let purchaseHistory: Purchase[] = [];
 
@@ -108,8 +106,42 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
       return documentRef.id;
     },
     {
-      onSuccess(_reviewId) {
-        client.invalidateQueries(['chat', user.data?.uid]);
+      onSettled: async () => {
+        return await client.invalidateQueries({ queryKey });
+      },
+      onMutate: async ({ prompt, searchQuery, reset }) => {
+
+        if (reset || !prompt) {
+          return;
+        }
+
+        // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+        await client.cancelQueries(queryKey);
+
+        // Snapshot the previous value
+        const previousValue = client.getQueryData(queryKey);
+
+        // Optimistically update to the new value
+
+        const newMessage: FirestoreMessage = {
+          prompt,
+          status: {
+            state: "COMPLETED"
+          },
+        };
+
+        if (prompt) {
+          client.setQueryData(queryKey, (old: any) => [...old, newMessage]);
+        }
+
+        // Return a context object with the previous value
+        return { previousValue };
+      },
+      onError: (error, variables, context) => {
+        // Roll back to the previous value
+        if (context?.previousValue) {
+          client.setQueryData(queryKey, context.previousValue);
+        }
       },
     },
   );
