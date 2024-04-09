@@ -74,12 +74,6 @@ export function Chat({ isOpen }: ChatProps) {
 
   const handleSendMessage = (text: string) => {
     if (isTyping()) return;
-    // Optimistically update the UI with the new message
-    const variables = chatMutation.variables;
-
-    console.log('variables', variables);
-
-    // Perform the mutation
     chatMutation.mutate(
       { prompt: text, searchQuery: text },
     );

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { v4 as uuid } from 'uuid';
 import { useMutation, UseMutationResult, useQueryClient } from 'react-query';
 import {
   addDoc,
@@ -28,7 +27,6 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { ref, uploadBytes } from 'firebase/storage';
 
 import { collections, firestore, functions, storage } from '../firebase';
 import { useUser } from './useUser';
@@ -107,6 +105,7 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
     },
     {
       onSettled: async () => {
+
         return await client.invalidateQueries({ queryKey });
       },
       onMutate: async ({ prompt, searchQuery, reset }) => {
@@ -114,6 +113,8 @@ export function useChatMutation(): UseMutationResult<any, Error, any> {
         if (reset || !prompt) {
           return;
         }
+
+        console.log("Sending message to Firestore.")
 
         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
         await client.cancelQueries(queryKey);

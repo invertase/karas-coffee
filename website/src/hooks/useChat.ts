@@ -48,6 +48,7 @@ export function useChat(): UseQueryResult<FirestoreMessage[]> {
     },
     {
       enabled: !user.isLoading,
+      keepPreviousData: true,
     },
   );
 }
