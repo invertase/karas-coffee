@@ -127,15 +127,17 @@ function AddressEntry({ addressKey }: { addressKey: string }) {
     },
     async onSubmit(values) {
       add.mutate({
+        name: values.name,
         address: {
-          name: values.name,
-          addressLine1: values.line1,
-          addressLine2: values.line2,
-          cityLocality: values.city,
-          stateProvince: values.state,
-          postalCode: values.postal_code,
-          countryCode: 'US',
+          addressLines: [values.line1, values.line2,values.city, values.state, values.postal_code],
         },
+        appAddress: {
+          line1: values.line1,
+          line2: values.line2,
+          city: values.city,
+          state: values.state,
+          postalCode: values.postal_code,
+        }
       });
     },
   });
@@ -168,9 +170,13 @@ function AddressSelection({
 }) {
   const remove = useDeleteAddress(address.id);
 
-  const isPending = !address.validation;
-  const isValid = address.validation?.status === 'verified' || address.validation?.status === 'warning';
-  const isSelectable = !isPending && isValid && !isSelected;
+  const isPending = address.validity === undefined;
+  const isValid = address.validity
+  // const isSelectable = !isPending && isValid && !isSelected;
+  const isSelectable = !isSelected;
+
+  const [line1, line2, city, state, countryCode] = address.address.addressLines;
+
 
   return (
     <div
@@ -187,12 +193,12 @@ function AddressSelection({
       })}
     >
       <div className="flex-grow text-gray-800">
-        <div className="font-bold">{address.address.name}</div>
-        <div>{address.address.addressLine1}</div>
-        <div>{address.address.addressLine2}</div>
-        <div>{address.address.cityLocality}</div>
+        <div className="font-bold">{address.name}</div>
+        <div>{line1}</div>
+        <div>{line2}</div>
+        <div>{city}</div>
         <div>
-          {address.address.stateProvince}, {address.address.countryCode}
+          {state}, {countryCode}
         </div>
         {isPending && (
           <div className="flex items-center space-x-2 bg-yellow-500/10 p-2 rounded border border-yellow-500 text-yellow-500 text-xs mt-4">
@@ -200,12 +206,13 @@ function AddressSelection({
             <div>Address is being validated...</div>
           </div>
         )}
-        {!isPending && !isValid && (
-          <div className="flex items-center space-x-2 bg-red-500/10 p-2 rounded border border-red-500 text-red-500 text-xs mt-4">
-            <ExclamationIcon className="w-5 h-5" />
-            <div>Address could not be validated.</div>
-          </div>
-        )}
+        {true ||
+          (!isPending && !isValid && (
+            <div className="flex items-center space-x-2 bg-red-500/10 p-2 rounded border border-red-500 text-red-500 text-xs mt-4">
+              <ExclamationIcon className="w-5 h-5" />
+              <div>Address could not be validated.</div>
+            </div>
+          ))}
       </div>
       <div
         role="button"

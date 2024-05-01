@@ -14,95 +14,180 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect, useRef, forwardRef } from 'react';
 import algoliasearch from 'algoliasearch/lite';
-import { InstantSearch, Hits, Configure, connectStateResults, connectSearchBox } from 'react-instantsearch-dom';
-import { SearchBoxProvided, Hit } from 'react-instantsearch-core';
-import { Link } from 'react-router-dom';
+import { InstantSearch, useHits, useSearchBox, Hits, Configure } from 'react-instantsearch';
+import { useVectorSearch as useCustomSearch } from '../hooks/useVectorSearch';
+import { Switch } from './Switch';
+import { Hit } from 'react-instantsearch-core';
 import { Product } from '../types';
-
+import { Link } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { useOnClickOutside } from '../hooks/useOnClickOutside';
 const searchClient = algoliasearch('Z7DKWT901V', 'c529b90d287423b1f926506fb74307ff');
 
-export function Search() {
+export const SearchPage = () => {
+  const myComponentRef = useRef<HTMLDivElement>(null);
+
+  const [query, setQuery] = useState('');
+  const [conciergeEnabled, setConciergeEnabled] = useState(false);
+
   const [focussed, setFocussed] = useState<boolean>(false);
 
+  const handleQueryChange = (query: string) => setQuery(query);
+
+  const handleSwitch = (isOn: boolean) => {
+    setFocussed(true);
+    setConciergeEnabled(isOn);
+  };
+
+  const closeModal = (event: MouseEvent | TouchEvent) => {
+    if (
+      event.target instanceof HTMLElement &&
+      ['conceirge-switch', 'conceirge-dot', 'conceirge-bg'].includes(event.target.id)
+    ) {
+      return;
+    }
+    setTimeout(() => setFocussed(false), 300);
+  };
+
+  useOnClickOutside<HTMLDivElement>(myComponentRef, closeModal);
+
   return (
-    <div className="relative w-full max-w-[500px]">
+    <div
+      className={`relative w-full max-w-[800px]  border rounded ${focussed ? 'border-gray-500' : ''} grid grid-cols-4`}
+    >
       <InstantSearch searchClient={searchClient} indexName="products">
-        <Configure facetFilters={[['metadata.type:swag', 'metadata.type:coffee']]} />
-        {/* <SearchBox
-          onFocus={() => setFocussed(true)}
-          onBlur={() => {
-            // Allow the link event to fire before triggering the blur event
-            setTimeout(() => {
-              setFocussed(false);
-            }, 100);
-          }}
-        /> */}
-        {focussed && (
-          <Results>
-            <div>
-              <Hits hitComponent={Row} />
-            </div>
-          </Results>
-        )}
+        <div className="w-full h-full bg-indigo-100 col-span-3" ref={myComponentRef}>
+          <SearchInput
+            className="w-full h-full"
+            handleQueryChange={handleQueryChange}
+            placeholder={conciergeEnabled ? 'Search...' : 'Search...'}
+            onFocus={() => setFocussed(true)}
+          />
+        </div>
+        {focussed && <UnifiedSearch query={query} conciergeEnabled={conciergeEnabled} />}
+        <div className="p-2 items-center justify-center flex right-0 pr-4 absolute t-4 h-full">
+          <Switch id="concierge-switch" onChange={handleSwitch} />
+        </div>
       </InstantSearch>
     </div>
   );
-}
-
-type SearchBoxProps = {
-  onFocus: () => void;
-  onBlur: () => void;
 };
 
-const SearchBox = connectSearchBox((state: SearchBoxProvided & SearchBoxProps) => {
-  return (
-    <input
-      onFocus={state.onFocus}
-      onBlur={state.onBlur}
-      className="w-full max-w-[500px] p-2 border rounded focus:border-gray-500 focus:outline-none"
-      placeholder="Search coffee & swag..."
-      type="search"
-      value={state.currentRefinement}
-      onChange={(event) => state.refine(event.currentTarget.value)}
-    />
-  );
-});
+const UnifiedSearch = ({ query, conciergeEnabled }: { query: string; conciergeEnabled: boolean }) => {
+  // change the debounce time according to your needs
+  const debouncedQuery = useDebounce(query, 1000);
+  const { hits: algHits } = useHits<any>();
 
-const Results = connectStateResults((state) => {
-  const wrapper = (children: React.ReactElement) => (
-    <div className="absolute z-10 mt-4 border bg-white rounded shadow-xl w-[600px] max-h-[400px] overflow-y-auto transform translate-x-[-50%] left-[50%]">
-      {children}
-    </div>
-  );
+  const results = useCustomSearch('customSearch',debouncedQuery, 3);
 
-  if (state.searchResults?.nbHits > 0) {
-    return wrapper(<>{state.children}</>);
+  if (results.isLoading)
+    return (
+      <div className="absolute z-10 mt-16 border bg-white rounded shadow-xl w-[600px] max-h-[400px] overflow-y-auto transform translate-x-[-50%] left-[50%]">
+        <RowSkeleton />
+        <RowSkeleton />
+      </div>
+    );
+  if (results.isError)
+    return (
+      <div className="absolute z-10 mt-16 border bg-white rounded shadow-xl w-[600px] max-h-[400px] overflow-y-auto transform translate-x-[-50%] left-[50%]">
+        <div className="flex items-center justify-center p-20 text-gray-600">Error with search!</div>
+      </div>
+    );
+  const vectorSearchHits = results.data;
+
+  const hits = conciergeEnabled ? vectorSearchHits : algHits.map((h) => ({ ...h, id: h.objectID }));
+
+  if (!hits || hits.length === 0) {
+    return (
+      <div className="absolute z-10 mt-16 border bg-white rounded shadow-xl w-[600px] max-h-[400px] overflow-y-auto transform translate-x-[-50%] left-[50%]">
+        <div className="flex items-center justify-center p-20 text-gray-600">Sorry, no results were found.</div>
+      </div>
+    );
   }
 
-  return wrapper(
-    <div className="flex items-center justify-center p-20 text-gray-600">Sorry, no results were found</div>,
+  return (
+    <div
+      className="absolute z-10 mt-16 border bg-white rounded shadow-xl w-[600px] max-h-[400px] overflow-y-auto transform translate-x-[-50%] left-[50%]"
+      onClick={(e) => e.preventDefault()}
+    >
+      {hits.map((hit) => (
+        <Row key={hit.id} hit={hit as Hit<Product>} />
+      ))}
+    </div>
   );
-});
+};
+
+const SearchInput = ({ placeholder, handleQueryChange, onFocus, onBlur }: any) => {
+  const { query, refine } = useSearchBox();
+
+  const handleChange = (e: any) => {
+    const newQuery = e.target.value;
+    refine(newQuery);
+    handleQueryChange(newQuery);
+  };
+
+  const [inputValue, setInputValue] = useState(query);
+
+  // Effect to synchronize Algolia's query state with local input state
+  useEffect(() => {
+    setInputValue(query);
+  }, [query]);
+
+  return (
+    <input
+      type="text"
+      value={inputValue}
+      onChange={handleChange}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      placeholder={placeholder}
+      className="relative w-full h-full p-2 pl-4 focus:outline-none"
+    />
+  );
+};
 
 const Row = ({ hit }: { hit: Hit<Product> }) => {
-  return (
+  const id = hit.objectID || hit.id;
+
+  const imageUrl = hit.images && hit.images.length > 0 ? hit.images[0] : 'defaultImageURL'; // Provide a default image URL or logic here
+  return hit.metadata ? (
     <Link
-      to={`/product/${hit.objectID}`}
+      to={`/product/${id}`}
       className="flex items-center px-4 py-4 hover:bg-gray-50"
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        // e.preventDefault();
+      }}
     >
       <div className="flex-shrink-0 w-16 mr-4">
-        <img src={hit.images[0]} alt={hit.name} className="object-cover w-16 h-16 rounded" />
+        <img src={imageUrl} alt={hit.name} className="object-cover w-16 h-16 rounded" />
       </div>
-      <div>
+      <div className="w-full">
         <div className="flex items-center text-lg font-semibold">
           <h3 className="flex-grow">{hit.name}</h3>
-          <div>${hit.metadata.price_usd}</div>
+          <div>{hit.metadata.price_usd}</div>
         </div>
         <p className="mt-2 text-sm text-gray-500">{hit.description}</p>
       </div>
     </Link>
+  ) : (
+    <></>
+  );
+};
+
+const RowSkeleton = () => {
+  return (
+    <div className="flex items-center px-4 py-4 hover:bg-gray-50 animate-pulse">
+      <div className="flex-shrink-0 w-16 h-16 mr-4 bg-gray-300 rounded"></div>
+      <div>
+        <div className="flex items-center text-lg font-semibold">
+          <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+          <div className="h-4 bg-gray-300 rounded w-1/4 ml-auto"></div>
+        </div>
+        <div className="mt-2 h-2 bg-gray-300 rounded w-5/6"></div>
+        <div className="mt-1 h-2 bg-gray-300 rounded w-4/6"></div>
+      </div>
+    </div>
   );
 };

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 
@@ -25,22 +25,43 @@ import 'tailwindcss/tailwind.css';
 import { App } from './App';
 import { loadBundle } from 'firebase/firestore';
 import { firestore } from './firebase';
-// import { CookiePolicy } from './components/CookiePolicy';
-
+import { CookiePolicy } from './components/CookiePolicy';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
 const client = new QueryClient();
-
+import './styles/bouncing.css';
 async function bootstrap(): Promise<void> {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      await signInAnonymously(auth);
+    }
+  });
+
   // Define any bundles to pre-load.
   const bundles = await Promise.all([fetch('/bundles/shop')]);
-
   // Load the bundles into Firestore.
-  await Promise.all(bundles.map((bundle) => loadBundle(firestore, bundle.body!)));
+  const bodies = bundles.map((bundle) => bundle.body!)
+
+  await Promise.all(bodies.map((body) => loadBundle(firestore, body)));
 }
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 
 bootstrap().then(() => {
   ReactDOM.render(
     <React.StrictMode>
       <BrowserRouter>
+      <ScrollToTop />
+
         <QueryClientProvider client={client}>
           <>
             <App />

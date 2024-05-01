@@ -15,12 +15,14 @@
  */
 
 import { useCallback, useState } from 'react';
-import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
+import { addDoc, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router';
 
 import { collections } from '../firebase';
 import { useUser } from './useUser';
 import { Session } from '../types';
+import { CartItem, useCart } from './useCart';
+import { useQueryClient } from 'react-query';
 
 export function useCheckout(): {
   trigger: (session: Omit<Session, 'url' | 'customer'>) => void;
@@ -31,6 +33,8 @@ export function useCheckout(): {
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const user = useUser();
+  const client = useQueryClient();
+  const { addToCart, removeFromCart, getItem } = useCart();
 
   const uid = user.data?.uid;
 
@@ -46,6 +50,7 @@ export function useCheckout(): {
 
       try {
         const customer = await getDoc(doc(collections.customers, uid));
+
         const { stripe_id } = customer.data() ?? {};
 
         if (!stripe_id) {
@@ -86,6 +91,23 @@ export function useCheckout(): {
       } catch (e: any) {
         setError(e);
         setLoading(false);
+      }
+      const purchaseHistory = collections.purchaseHistory(uid);
+      if (session.cart) {
+        for (const item of session.cart) {
+          try {
+            await addDoc(purchaseHistory, {
+              product: item,
+              quantity: item['quantity'],
+              date: serverTimestamp(),
+            });
+          } catch (e) {
+            console.error("Error adding purchase history "+ uid )
+            console.error(e);
+          }
+        }
+        removeFromCart(session.cart);
+        client.invalidateQueries(['purchaseHistory', uid]);
       }
     },
     [uid],

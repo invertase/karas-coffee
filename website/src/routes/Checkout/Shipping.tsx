@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import cx from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { AddressBook } from '../../components/AddressBook';
@@ -26,7 +26,9 @@ import { useRatesCalculation } from '../../hooks/useRatesCalculation';
 import { ShippingRate, Address, Shipment } from '../../types';
 import { emptyArray } from '../../utils';
 import { Skeleton } from '../../components/Skeleton';
-import { Alert } from '../../components/Alert';
+import { useUser } from '../../hooks/useUser';
+import { Link } from 'react-router-dom';
+import { LoadingCover } from '../../components/LoadingCover';
 
 export function Shipping() {
   const { cart } = useCart();
@@ -35,10 +37,16 @@ export function Shipping() {
   const [address, setAddress] = useState<Address | null>(null);
   const [rate, setRate] = useState<ShippingRate | null>(null);
   const shipment = useRef<Shipment>();
+  const user = useUser();
+
+  const [isAwaitingStripeCheckout, setIsAwaitingStripeCheckout] = useState(false);
 
   async function onPlaceOrder() {
     if (!address) return;
     if (!rate) return;
+
+    setIsAwaitingStripeCheckout(true);
+
     checkout.trigger({
       mode: 'payment',
       success_url: `${window.location.origin}/account/orders?completed=true`,
@@ -66,8 +74,11 @@ export function Shipping() {
         carrierId: rate.carrierId,
         serviceCode: rate.serviceCode,
       },
+      cart,
     });
   }
+
+  if (isAwaitingStripeCheckout) return <LoadingCover />;
 
   return (
     <section className="px-4 mt-8 lg:px-0">
@@ -117,20 +128,18 @@ export function Shipping() {
                 </>
               }
             />
-
-            <Alert type="warning">
-              Stripe Checkout is disabled for the live demo. Please clone and run the demo locally - for more
-              information view the GitHub Repository.
-            </Alert>
-            <Button
-              disabled={!rate}
-              loading={checkout.loading}
-              onClick={() => {
-                window.location.assign('https://checkout.stripe.dev/');
-              }}
-            >
-              Place Order &rarr;
-            </Button>
+            {user.data && !user.data.isAnonymous ? (
+              <Button disabled={!rate || !user.data} loading={checkout.loading} onClick={onPlaceOrder}>
+                Place Order &rarr;
+              </Button>
+            ) : (
+              <Link
+                className="relative w-full flex justify-center py-1 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                to={'/signin?redirect=/checkout'}
+              >
+                Sign in to place order
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -148,7 +157,32 @@ function ShippingRates({
   const [selected, setSelected] = useState<string | null>(null);
   const shipment = useRef<Shipment>();
 
-  const rates = useRatesCalculation();
+  // const rates = useRatesCalculation();
+  const rates = {
+    mutate: (x: any) => {},
+    isSuccess: true,
+    isError: false,
+    isLoading: false,
+    error: {
+      message: 'Error',
+    },
+    data: {
+      rates: [
+        {
+          carrierDeliveryDays: '5',
+          rateId: 'rate_123456789',
+          carrierId: 'carrier_987654321',
+          serviceCode: 'service_code_example',
+          serviceType: 'Standard',
+          carrierFriendlyName: 'Example Carrier',
+          deliveryDays: '5',
+          shippingAmount: {
+            amount: 9.99,
+          },
+        },
+      ],
+    },
+  };
   const id = address?.id;
 
   useEffect(() => {
@@ -165,12 +199,12 @@ function ShippingRates({
         countryCode: 'US',
       },
       shipTo: {
-        name: address.address.name,
-        addressLine1: address.address.addressLine1,
-        addressLine2: address.address.addressLine2,
-        cityLocality: address.address.cityLocality,
-        stateProvince: address.address.stateProvince,
-        postalCode: address.address.postalCode,
+        name: address.name,
+        addressLine1: address.appAddress.line1,
+        addressLine2: address.appAddress.line2,
+        cityLocality: address.appAddress.city,
+        stateProvince: address.appAddress.state,
+        postalCode: address.appAddress.postalCode,
         countryCode: 'US',
       },
       packages: [
@@ -214,12 +248,12 @@ function ShippingRates({
             <p className="text-gray-800">Select a shipping carrier and rate:</p>
             <div className="mt-2 text-sm text-gray-500">
               {[
-                address.address.name,
-                address.address.addressLine1,
-                address.address.addressLine2,
-                address.address.cityLocality,
-                address.address.stateProvince,
-                address.address.postalCode,
+                address.name,
+                address.appAddress.line1,
+                address.appAddress.line2,
+                address.appAddress.city,
+                address.appAddress.state,
+                address.appAddress.postalCode,
               ]
                 .filter(Boolean)
                 .join(', ')}

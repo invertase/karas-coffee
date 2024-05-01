@@ -48,7 +48,7 @@ export function useProductReviews(productId: string): UseQueryResult<Review[]> {
       subscribe: true,
     },
     {
-      enabled: !user.isLoading,
+      enabled: !user.isLoading && !user.data?.isAnonymous,
     },
   );
 }
@@ -71,7 +71,7 @@ export function useProductReviewImages(productId: string, userId: string): UseQu
     const items = collection(
       firestore,
       'gcs-mirror',
-      'karas-coffee.appspot.com',
+      'karas-coffee-invertase.appspot.com',
       'prefixes',
       userId,
       'prefixes',
@@ -82,7 +82,7 @@ export function useProductReviewImages(productId: string, userId: string): UseQu
     );
 
     return onSnapshot(items, async (snapshot) => {
-      const ids = snapshot.docs.map((doc) => doc.data().gcsMetadata.name);
+      const ids = snapshot.docs.map((doc) => doc.data().gcsMetadata.name).filter((id) => id.includes('200x200'));
 
       const urls = await Promise.all(
         ids.map((id) => {

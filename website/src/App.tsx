@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+// import { Acknowledgement } from './components/Acknowledgement';
 
 import { useUser } from './hooks/useUser';
 
@@ -38,17 +39,21 @@ import { ContentList, ContentOutlet } from './routes/Content';
 import { Content } from './routes/Content/Content';
 import { Shipping } from './routes/Checkout/Shipping';
 import { Alert } from './components/Alert';
+import { Chat } from './components/Chat';
+
 
 export function App() {
   const user = useUser();
 
+  const [chatOpened, setChatOpened] = useState(false);
+
   if (user.isLoading) {
     return <div />;
   }
-
+  const isAnon = user.data?.isAnonymous;
   return (
     <>
-      <Header />
+      <Header setChatOpenState={() => setChatOpened(!chatOpened)} />
       <main className="mx-auto max-w-7xl md:px-6">
         <div className="mt-2">
           <Alert type="warning">
@@ -75,7 +80,7 @@ export function App() {
               <Route path="checkout/shipping" element={<Shipping />} />
             </>
           )}
-          {!user.data && (
+          {(!user.data || isAnon) && (
             <>
               <Route path="signin" element={<SignIn />} />
               <Route path="register" element={<Register />} />
@@ -84,6 +89,7 @@ export function App() {
           )}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        {!!user.data && <Chat isOpen={chatOpened} />}
       </main>
       <Footer />
     </>

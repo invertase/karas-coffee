@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "karas-coffee"
-  }
+    "default": "karas-coffee-invertase"
+  },
+  "targets": {}
 }

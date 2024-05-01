@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { XIcon } from '@heroicons/react/solid';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -31,7 +31,14 @@ import { emptyArray } from '../utils';
 import { WriteReviewCard } from '../components/WriteReviewCard';
 import { useUser } from '../hooks/useUser';
 import { Alert } from '../components/Alert';
-
+import { Heading } from '../components/Heading';
+import { ProductCard, ProductCardSkeleton } from '../components/ProductCard';
+import { Product as ProductType } from '../types';
+import { useVectorSearch } from '../hooks/useVectorSearch';
+import { useFirestoreDocumentData } from '@react-query-firebase/firestore';
+import { collections } from '../firebase';
+import { doc } from 'firebase/firestore';
+import { Share } from '../components/Share';
 export function Product() {
   const user = useUser();
   const { id } = useParams();
@@ -90,7 +97,7 @@ export function Product() {
                     <XIcon
                       role="button"
                       className="w-5 h-5 mt-7 hover:opacity-50 text-red-400"
-                      onClick={() => removeFromCart(product.data!)}
+                      onClick={() => removeFromCart([product.data!])}
                     />
                   </div>
                 </div>
@@ -98,21 +105,31 @@ export function Product() {
               {!cartItem && (
                 <Button
                   onClick={() => {
-                    if (user.data) {
-                      addToCart(product.data!);
-                    } else {
-                      navigate('/signin');
-                    }
+                    // if (user.data) {
+                    addToCart(product.data!);
+                    // } else {
+                    // navigate('/signin');
+                    // }
                   }}
                 >
                   Add to cart
                 </Button>
               )}
+              <Share product={product.data} />
             </div>
           </div>
         </div>
       </section>
-      <section className="max-w-xl mx-auto mt-25 px-4 lg:px-0">
+      <section className="mt-24">
+        <Recommendations
+          pid={product.data.id}
+          query={product.data.description}
+          title="You might also like"
+          // @ts-ignore
+          type={product.data.metadata.type}
+        />
+      </section>
+      <section className="max-w-xl mx-auto mt-24 px-4 lg:px-0">
         {!!user && <Review productId={product.data.id} />}
         <ListReviews productId={product.data.id} />
       </section>
@@ -178,6 +195,9 @@ function Review({ productId }: { productId: string }) {
 
 function ListReviews({ productId }: { productId: string }) {
   const reviews = useProductReviews(productId);
+  const user = useUser();
+
+  const isAnonymous = !user.isLoading && user.data?.isAnonymous;
 
   const wrapper = (children: React.ReactNode, key: string) => (
     <div className="py-12" key={key}>
@@ -188,7 +208,11 @@ function ListReviews({ productId }: { productId: string }) {
   return (
     <div className="mt-12">
       <h2 className="mb-4 text-3xl font-extrabold tracking-wide">Reviews</h2>
-      <Alert type="warning">For this demo application, only your own reviews are currently visible.</Alert>
+      <Alert type="warning">
+        {isAnonymous
+          ? 'Please sign in to see your reviews.'
+          : 'For this demo application, only your own reviews are currently visible.'}
+      </Alert>
       <div className="divide-y">
         {reviews.status === 'loading' && emptyArray(5).map((_, i) => wrapper(<ReviewCardSkeleton />, `${i}`))}
         {reviews.status === 'success' && (
@@ -202,6 +226,45 @@ function ListReviews({ productId }: { productId: string }) {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+interface RecommendationsProps {
+  title: string;
+  query: string;
+  pid: string;
+  type: ProductType;
+}
+
+function Recommendations({ title, query, pid }: RecommendationsProps) {
+  // todo: use vector search here
+
+  const products = useVectorSearch(['recommendations',query],query, 5);
+
+  if (products.isLoading || products.isError) {
+    return (
+      <div className="px-4">
+        <Heading>{title}</Heading>
+        <section className="flex-row lg:grid lg:flex-col lg:grid-cols-4 lg:gap-x-6 lg:gap-y-12">
+          {emptyArray(4).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4">
+      <Heading>{title}</Heading>
+      <section className="flex-row lg:grid lg:flex-col lg:grid-cols-4 lg:gap-x-6 lg:gap-y-12">
+        {!products.isSuccess && emptyArray(4).map((_, i) => <ProductCardSkeleton key={i} />)}
+        {products.isSuccess &&
+          products.data
+            .filter((p) => p.id !== pid)
+            .map((product) => <ProductCard key={product.id} product={product} />)}
+      </section>
     </div>
   );
 }

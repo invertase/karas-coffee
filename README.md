@@ -63,8 +63,6 @@ yarn firebase:deploy-firestore-rules
        - See the [docs](https://github.com/FirebaseExtended/karas-coffee/blob/main/docs) to learn about the Firebase Extensions used in this project.
  -  💳&nbsp;&nbsp;[Stripe Checkout](https://stripe.com/docs/payments/checkout)
     - Checkout creates a secure, Stripe-hosted payment page that lets you collect payments quickly.
- -  📦&nbsp;&nbsp;[ShipEngine](https://www.shipengine.com/)
-    - ShipEngine’s APIs help brands, ecommerce platforms, 3PLs and others save time and money on shipping.
  -  🔍&nbsp;&nbsp;[Algolia Search](https://www.algolia.com/products/search-and-discovery/hosted-search-api/)
     - Enables developers to build next generation apps with composable APIs.
  -  ⚛️&nbsp;&nbsp;[React](https://reactjs.org/)

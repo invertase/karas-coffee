@@ -29,7 +29,7 @@ type UseCart = {
   total: number;
   addToCart: (product: Product, quantity?: number) => void;
   setQuantity: (product: Product, quantity: number) => void;
-  removeFromCart: (product: Product) => void;
+  removeFromCart: (products: Product[]) => void;
   clearCart: () => void;
   getItem: (product: Product) => CartItem | undefined;
 };
@@ -86,8 +86,8 @@ export function useCart(): UseCart {
 
       mutate(items);
     },
-    removeFromCart(product) {
-      mutate(cartItems.filter((p) => p.id !== product.id));
+    removeFromCart(products) {
+      mutate(cartItems.filter((p) => !products.map(product=> product.id).includes(p.id)));
     },
     clearCart() {
       mutate([]);

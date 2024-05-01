@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import * as functions from 'firebase-functions';
+import * as firebaseFunctions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 // @ts-expect-error No types for firebase-tools
 import * as firebase_tools from 'firebase-tools';
+
+const functions = firebaseFunctions;
 
 admin.initializeApp();
 
@@ -27,8 +29,8 @@ function getProductIds(): Promise<string[]> {
     .firestore()
     .collection('products')
     .listDocuments()
-    .then((docRefs) => {
-      return docRefs.map((docRef) => docRef.id);
+    .then((docRefs: any) => {
+      return docRefs.map((docRef: any) => docRef.id);
     });
 }
 
@@ -42,19 +44,27 @@ function deleteCollection(path: string): Promise<void> {
 }
 
 // Send a welcome email on user create.
-exports.onAuthCreate = functions.auth.user().onCreate(async (user: functions.auth.UserRecord) => {
-  const collection = admin.firestore().collection('mail');
-  await collection.add({ to: user.email, template: { name: 'welcome_email' } });
+exports.onAuthCreate = functions.auth.user().onCreate(async (user: firebaseFunctions.auth.UserRecord) => {
+  if (user.email) {
+    const collection = admin.firestore().collection('mail');
+    await collection.add({
+      to: user.email,
+      message: {
+        subject: 'Welcome to Karas Coffee!',
+        html: 'Welcome to Karas Coffee! We are excited to have you as a customer.',
+      },
+    });
+  }
 });
 
 // Send a order update SMS to the user once they have placed an order.
 exports.onPaymentCreated = functions.firestore
   .document('customers/{customerId}/payments/{paymentId}')
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (snapshot: any, context: any) => {
     const customerId = context.params.customerId;
     const user = await admin.auth().getUser(customerId);
     if (!user.phoneNumber) {
-      functions.logger.log('No phone number found for user, skipping sending update.', user.uid);
+      firebaseFunctions.logger.log('No phone number found for user, skipping sending update.', user.uid);
       return;
     }
     const message = {

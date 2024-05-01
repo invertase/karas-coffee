@@ -8,18 +8,15 @@ These docs explain how the main aspects of the application integrate with Fireba
 
 ## Building the application
 
-Although the application as a whole demonstrates an e-commerce website, there are also individual aspects of it
-described in more detail throughout these docs:
+## Building the application
 
-- [Syncing products using the Stripe Extension](Syncing-products-using-the-Stripe-Extension.md)
+Although the application as a whole demonstrates an e-commerce website, there are also individual aspects of it described in more detail throughout these docs:
+
+- [Running payments with Stripe](Integrating-with-Stripe-Checkout.md)
 - [Creating an instant search experience with Algolia](Creating-an-instant-search-experience-with-Algolia.md)
-- [Building user shopping carts with Firestore](Building-user-shopping-carts-with-Firestore.md)
-- [Displaying filterable products using Firestore Queries](Displaying-filterable-products-using-Firestore-Queries.md)
-- [Enabling fast product listings using Data Bundles](Enabling-fast-product-listings-using-Data-Bundles.md)
-- [Detecting toxic user reviews using the Perspective Toxicity Extension](Detecting-toxic-user-reviews-using-the-Perspective-Toxicity-Extension.md)
-- [Integrating with Stripe Checkout](Integrating-with-Stripe-Checkout.md)
-- [Validating user addresses and handling shipping rates](Validating-user-addresses-and-handling-shipping-rates.md)
-
+- [Enabling fast product listings using Firestore bundles](Enabling-fast-product-listings-using-Data-Bundles.md)
+- [Detecting toxic user reviews using the Perspective API](Detecting-toxic-user-reviews-using-the-Perspective-Toxicity-Extension.md)
+- [Validating user addresses in Firestore](Validating-user-addresses-and-handling-shipping-rates.md)
 
 ---
 
@@ -49,6 +46,9 @@ described in more detail throughout these docs:
     the [Twilio Send Message](https://github.com/twilio-labs/twilio-firebase-extensions/tree/main/firestore-send-twilio-message)
     extension by writing to the `messages` collection on Cloud Firestore.
 
+    **⚠️ Twilio integration is currently disabled for purposes of the demo. To see information on how Twilio works, you can visit their [docs](https://www.twilio.com/docs/messaging/guides/guide-to-using-the-twilio-virtual-phone).**
+
+
 - [`deleteUserData`](https://github.com/invertase/karas-coffee/blob/main/functions/src/index.ts#L69)
   - This scheduled function deletes all user data every 24 hours - it is useful only for the purpose of this demo.
 
@@ -58,29 +58,32 @@ described in more detail throughout these docs:
 
 - [Delete User Data](https://firebase.google.com/products/extensions/delete-user-data)
   - Automatically delete user data when a Firebase user is deleted.
-- [Firestore Bundle Server](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-bundle-server)
+- [Firestore Bundle Builder](https://extension.dev/firebase/firestore-bundle-builder)
   - See [enabling fast product listings using Data Bundles](Enabling-fast-product-listings-using-Data-Bundles.md) to
     learn more.
-- [Firestore Send Email](https://firebase.google.com/products/extensions/firestore-send-email)
+- [Manage Marketing with Mailchimp](https://extension.dev/mailchimp/manage-marketing-with-mailchimp)
+  - Saves user account and email in Mailchimp upon account creation for email marketing campaigns.
+- [Stream Firestore to BigQuery](https://extension.dev/google/stream-firestore-to-bigquery)
+  - Streams payment data to BigQuery for effective querying and analysis.
+- [Trigger Email from Firestore](https://extension.dev/firebase/trigger-email)
   - Sends a welcome email upon signup.
-- [Firestore Perspective Toxicity](https://github.com/conversationai/firestore-perspective-toxicity)
+- [Analyze Comment Toxicity with Perspective API](https://extension.dev/google/analyze-comment-toxicity)
   - Validates review comments provided by customers to ensure that they are non-toxic, e.g. insults & profanity
     detection.
-- [Trigger Email](https://firebase.google.com/products/extensions/firestore-send-email)
 - [Algolia - Firestore Algolia Search](https://firebase.google.com/products/extensions/firestore-algolia-search)
   - See [creating an instant search experience with Algolia](Creating-an-instant-search-experience-with-Algolia.md) to
     learn more.
-- [Stripe - Firestore Stripe Payments](https://firebase.google.com/products/extensions/firestore-stripe-subscriptions)
+- [Run Payments with Stripe](https://extension.dev/stripe/run-payments-with-stripe)
   - See the following pages to learn more:
     - [Syncing products using the Stripe Extension](Syncing-products-using-the-Stripe-Extension.md).
     - [Integrating with Stripe Checkout](Integrating-with-Stripe-Checkout.md)
-- [ShipEngine - Calculate Shipping Rates](https://github.com/ShipEngine/firebase-extensions/tree/master/extensions/rates)
-  - See [validating user addresses and handling shipping rates](Validating-user-addresses-and-handling-shipping-rates.md)
-    to learn more.
-- [ShipEngine - Purchase Labels](https://github.com/ShipEngine/firebase-extensions/tree/master/extensions/purchase-label)
-- [ShipEngine - Validate Address](https://github.com/ShipEngine/firebase-extensions/tree/master/extensions/validate-address)
-  - See [validating user addresses and handling shipping rates](Validating-user-addresses-and-handling-shipping-rates.md)
-    to learn more.
+- [Validate Address in Firestore](https://extension.dev/google/validate-address)
+  - Validates user-selected addresses using the Google Maps API to ensure delivery confidence.
+- [Build Chatbot with the Gemini API](https://extension.dev/gemini/build-chatbot)
+  - Integrates a sophisticated chatbot into the application, utilizing the Gemini API for dynamic user interactions and support.
+- [Vector Search with Firestore](https://extension.dev/firebase/vector-search-firestore)
+  - Enhances search capabilities within Firestore using advanced vector search technology, allowing for more accurate and efficient search results.
+
 
 ---
 

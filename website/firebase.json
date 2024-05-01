@@ -9,12 +9,34 @@
     "rewrites": [
       {
         "source": "/bundles/*",
-        "function": "ext-firestore-bundle-server-serve"
+        "function": "ext-firestore-bundle-builder-serve"
       },
       {
         "source": "**",
         "destination": "/index.html"
       }
     ]
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true
+    },
+    "hosting": {
+      "port": 5002
+    }
+  },
+  "extensions": {
+    "firestore-vector-search": "googlecloud/firestore-vector-search@0.0.1-alpha.3",
+    "firestore-genai-chatbot": "googlecloud/firestore-genai-chatbot@0.0.9",
+    "firestore-validate-address": "googlemapsplatform/firestore-validate-address@0.1.3"
+  },
+  "functions": {
+    "source": "../functions"
   }
 }

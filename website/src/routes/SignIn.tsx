@@ -17,13 +17,18 @@
 import React from 'react';
 import { FormikErrors, useFormik } from 'formik';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuthSignInWithEmailAndPassword } from '@react-query-firebase/auth';
+import {
+  useAuthLinkWithCredential,
+  useAuthSignInAnonymously,
+  useAuthSignInWithEmailAndPassword,
+} from '@react-query-firebase/auth';
 
 import { Card } from '../components/Card';
 import { Input, Error, Divider } from '../components/Form';
 import { SocialProviders } from '../components/SocialProviders';
 import { auth } from '../firebase';
 import { Button } from '../components/Button';
+import { EmailAuthProvider } from 'firebase/auth';
 
 type FormValues = {
   email: string;
@@ -37,6 +42,8 @@ export function SignIn() {
       navigate(redirect || '/');
     },
   });
+
+  const linkMutation = useAuthLinkWithCredential();
 
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
@@ -58,6 +65,16 @@ export function SignIn() {
         email: values.email,
         password: values.password,
       });
+
+      if (!auth.currentUser) {
+        // TODO: probably throw an error here or something
+        return
+      }
+
+      const credential = EmailAuthProvider.credential(values.email, values.password);
+
+
+      linkMutation.mutate({ user: auth.currentUser, credential: credential });
     },
   });
 
@@ -116,6 +133,15 @@ export function SignIn() {
             reset every 24 hours.
           </p>
         </div>
+        {/* <Divider>Or sign in anonymously</Divider>
+        <Button
+          onClick={() => {
+            signInAnonymously.mutate({ email: '', password: '' });
+          }}
+          loading={signIn.isLoading}
+        >
+          Sign in Anonymously
+        </Button> */}
       </Card>
     </section>
   );

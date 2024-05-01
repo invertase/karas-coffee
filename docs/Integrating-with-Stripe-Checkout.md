@@ -7,7 +7,7 @@ A checkout `url` will be generated for redirecting users to their specific check
 ## Configuration
 
 Using
-the [Stripe Subscriptions Extension](https://firebase.google.com/products/extensions/firestore-stripe-subscriptions?authuser=0)
+the [Run Payments with Stripe](https://extension.dev/stripe/run-payments-with-stripe) Extension,
 a collection can be defined called a `checkout_session`.
 
 This will manage synced checkout information between Firestore and Stripe including:

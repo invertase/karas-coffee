@@ -15,7 +15,7 @@
  */
 
 import React, { useRef, useState } from 'react';
-import { User, RecaptchaVerifier, ConfirmationResult } from 'firebase/auth';
+import { User, RecaptchaVerifier, ConfirmationResult, signInAnonymously } from 'firebase/auth';
 
 import { auth } from '../../firebase';
 import { Button } from '../../components/Button';
@@ -30,6 +30,7 @@ export function Overview() {
 
   const signOut = useAuthSignOut(auth, {
     onSuccess() {
+      signInAnonymously(auth);
       navigate('/');
     },
   });
@@ -46,12 +47,14 @@ export function Overview() {
           <li>Display Name: {data.displayName}</li>
           <li>Email Address: {data.email || 'N/A'}</li>
           <li>Email Verified: {data.emailVerified ? 'Yes' : 'No'}</li>
-          {/* Ignoring for live demo <PhoneNumber user={data} /> */}
+          {/* disabled for demo <PhoneNumber user={data} /> */}
         </ul>
         <div className="mt-4">
-          <Button onClick={() => signOut.mutate()} loading={signOut.isLoading}>
-            Sign Out
-          </Button>
+          {!data.isAnonymous && (
+            <Button onClick={() => signOut.mutate()} loading={signOut.isLoading}>
+              Sign Out
+            </Button>
+          )}
         </div>
       </div>
     </div>

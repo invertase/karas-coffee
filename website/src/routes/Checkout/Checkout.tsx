@@ -97,7 +97,7 @@ function Items() {
                   <XIcon
                     role="button"
                     className="w-5 h-5 mt-7 hover:opacity-50 text-red-400"
-                    onClick={() => removeFromCart(item)}
+                    onClick={() => removeFromCart([item])}
                   />
                 </div>
               </div>

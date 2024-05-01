@@ -15,8 +15,31 @@
  */
 
 import { Timestamp } from '@firebase/firestore';
+import { CartItem } from './hooks/useCart';
 
 export type ProductType = 'swag' | 'coffee' | 'subscription';
+
+export type Purchase = {
+  quantity: number;
+  product: Product;
+  date: Timestamp;
+};
+
+export type FirestoreMessage = {
+  prompt: string;
+  response?: string;
+  status: {
+    state: 'ERROR' | 'COMPLETED' | 'PROCESSING';
+  };
+};
+
+export type Message = {
+  text: string;
+  user: {
+    id: string;
+    name: string;
+  };
+};
 
 type ProductRecord = {
   id: string;
@@ -138,6 +161,7 @@ export interface Session {
   error?: {
     message: string;
   };
+  cart?: CartItem[];
 }
 
 export interface Subscription {
@@ -158,18 +182,17 @@ export interface Content {
 export interface Address {
   id: string;
   address: {
-    addressLine1: string;
-    addressLine2?: string;
-    cityLocality: string;
-    name: string;
-    stateProvince: string;
+    addressLines: string[];
+  };
+  appAddress: {
+    city: string;
+    line1: string;
+    line2: string;
     postalCode: string;
-    countryCode: string;
-  };
-  validation?: {
-    // https://www.shipengine.com/docs/addresses/validation/#address-status-meanings
-    status: 'verified' | 'unverified' | 'warning' | 'error';
-  };
+    state: string;
+  }
+  name: string;
+  validity?: boolean;
 }
 
 export interface ShippingRate {
@@ -214,3 +237,49 @@ export interface Shipment {
     };
   }[];
 }
+
+export interface Notice {
+  // The document ID.
+  id: string;
+  // The type of notice, e.g. `banner` | `terms-and-condition` | `privacy-policy`.
+  type: string;
+  // An optional notice version. This can be used to filter a specific notice versions via the `getNotice` callable function.
+  version?: number;
+  // The optional title of the notice.
+  title?: string;
+  // The optional description of the notice.
+  description?: string;
+  // The optional link of the notice.
+  link?: string;
+  // The timestamp when the notice was created.
+  createdAt: Timestamp;
+  // The timestamp when the notice was unacknowledged by the user.
+  unacknowledgedAt: Timestamp | null;
+  // A list of user acknowledgements.
+  acknowledgements: Acknowledgement[];
+}
+
+type BaseAcknowledgement = {
+  // The document ID.
+  id: string;
+  // The UID of the user who acknowledged the notice.
+  userId: string;
+  // The ID of the notice that was acknowledged.
+  noticeId: string;
+  // The timestamp when the notice was acknowledged.
+  createdAt: Timestamp;
+  // The optional metadata of the acknowledgement.
+  metadata: any;
+};
+
+export type Acknowledgement =
+  | (BaseAcknowledgement & {
+      // The type of the acknowledgement.
+      ack_event: 'acknowledged';
+      // The type of the acknowledgement. Defaults to `seen`.
+      type: string;
+    })
+  | (BaseAcknowledgement & {
+      // The type of the acknowledgement.
+      ack_event: 'unacknowledged';
+    });

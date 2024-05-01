@@ -16,10 +16,10 @@
 
 import { initializeApp } from 'firebase/app';
 // import { getAnalytics } from 'firebase/analytics';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, CollectionReference } from 'firebase/firestore';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { getFirestore, collection, CollectionReference, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { Session, Review, Subscription } from '../types';
 
 import {
@@ -30,24 +30,28 @@ import {
   subscriptionConverter,
   contentConverter,
   addressConverter,
+  purchaseHistoryConverter,
 } from './converters';
 
-export const firebaseConfig = {
-  apiKey: 'AIzaSyCrbVzj7TfFBPjxardH4JTuYFr38CZealM',
-  authDomain: 'karas-coffee.firebaseapp.com',
-  projectId: 'karas-coffee',
-  storageBucket: 'karas-coffee.appspot.com',
-  messagingSenderId: '94487412900',
-  appId: '1:94487412900:web:b96590557d4383a3fce631',
-  measurementId: 'G-M9HH3JL1S7',
+const firebaseConfig = {
+  apiKey: "AIzaSyApdn2A_Uvh68xRcj7ExIgJ-TzOVGi_e7Q",
+  authDomain: "karas-coffee-invertase.firebaseapp.com",
+  projectId: "karas-coffee-invertase",
+  storageBucket: "karas-coffee-invertase.appspot.com",
+  messagingSenderId: "81367302951",
+  appId: "1:81367302951:web:579b2ba2ffa2fe492d9f02"
 };
 
 export const app = initializeApp(firebaseConfig);
 // export const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
+
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+
+// connectFirestoreEmulator(firestore, 'localhost', 8080);
+// connectFunctionsEmulator(functions, 'localhost', 5001);
 
 export const collections = {
   products: collection(firestore, 'products').withConverter(productConverter),
@@ -59,6 +63,8 @@ export const collections = {
   payments: (customerId: string): CollectionReference => collection(firestore, 'customers', customerId, 'payments'),
   subscriptions: (customerId: string): CollectionReference<Subscription> =>
     collection(firestore, 'customers', customerId, 'subscriptions').withConverter(subscriptionConverter),
+  purchaseHistory: (customerId: string) =>
+    collection(firestore, 'customers', customerId, 'purchaseHistory').withConverter(purchaseHistoryConverter),
   invoices: (customerId: string, subscriptionId: string): CollectionReference => {
     return collection(collections.subscriptions(customerId), subscriptionId, 'invoices');
   },
@@ -67,4 +73,6 @@ export const collections = {
   content: collection(firestore, 'content').withConverter(contentConverter),
   addresses: (customerId: string) =>
     collection(firestore, 'customers', customerId, 'addresses').withConverter(addressConverter),
+  chat: (customerId: string) => collection(firestore, 'customers', customerId, 'chat'),
+  urls: collection(firestore, 'urls'),
 };

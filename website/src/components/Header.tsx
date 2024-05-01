@@ -14,14 +14,26 @@
  * limitations under the License.
  */
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../hooks/useUser';
 import { Cart } from './Cart';
-import { Search } from './Search';
+import { SearchPage as Search } from './Search';
 
-export function Header() {
+interface HeaderProps {
+  setChatOpenState: () => void;
+}
+
+export const chatDisabledRoutes = ['/signin', '/register', '/forgot-password', '/checkout', '/checkout/shipping'];
+
+export function Header(props: HeaderProps) {
   const user = useUser();
+
+  const location = useLocation();
+
+  const openChat = () => {
+    return props.setChatOpenState();
+  };
 
   return (
     <header className="sticky top-0 z-10 bg-white/95 backdrop-filter backdrop-blur-sm">
@@ -43,15 +55,24 @@ export function Header() {
         <div className="flex flex-shrink-0 space-x-4">
           <Cart />
           <HeaderLink to="/shop">Shop</HeaderLink>
-          <HeaderLink to={user.isSuccess && !!user.data ? '/account' : '/signin'}>
-            {user.isSuccess && !!user.data && (
+          <HeaderLink to={user.isSuccess && !!user.data && !user.data.isAnonymous? '/account' : '/signin'}>
+            {user.isSuccess && !!user.data && !user.data.isAnonymous && (
               <>
                 <span>My Account</span>
                 {!!user.data?.photoURL && <img src={user.data?.photoURL} className="ml-2 rounded-full w-7 h-7" />}
               </>
             )}
-            {user.isSuccess && !user.data && 'Sign In'}
+            {(user.isSuccess && !user.data) || (user.data?.isAnonymous) && 'Sign In'}
           </HeaderLink>
+        </div>
+        <div
+          className={`hidden ${
+            !chatDisabledRoutes.includes(location.pathname) && 'lg:flex'
+          } items-center justify-center `}
+        >
+          <button onClick={openChat} className="flex items-center font-semibold text-green-500 hover:text-gray-900">
+            Chat
+          </button>
         </div>
       </div>
     </header>
