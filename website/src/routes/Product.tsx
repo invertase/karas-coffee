@@ -130,20 +130,20 @@ export function Product() {
         />
       </section>
       <section className="max-w-xl mx-auto mt-24 px-4 lg:px-0">
-        {!!user && <Review productId={product.data.id} />}
+        {!!user && <Review productData={product.data} />}
         <ListReviews productId={product.data.id} />
       </section>
     </>
   );
 }
 
-function Review({ productId }: { productId: string }) {
+function Review({ productData }: { productData: ProductType }) {
   const user = useUser();
 
   if (!user?.data) return null;
 
-  const review = useProductReview(productId, user?.data!.uid);
-  const addReview = useReviewMutation(productId);
+  const review = useProductReview(productData.id, user?.data!.uid);
+  const addReview = useReviewMutation(productData.id);
   const [edit, setEdit] = useState<boolean>(false);
 
   const userReview = review.data;
@@ -163,6 +163,7 @@ function Review({ productId }: { productId: string }) {
           )}
           {review.status === 'success' && !userReview && (
             <WriteReviewCard
+              productDescription={productData.description}
               onSubmit={async (values) => {
                 await addReview.mutateAsync({
                   rating: values.stars,
@@ -175,6 +176,7 @@ function Review({ productId }: { productId: string }) {
           {!!edit && !!userReview && (
             <>
               <WriteReviewCard
+                productDescription={productData.description}
                 initialMessage={userReview.message}
                 initialStars={userReview.rating}
                 onSubmit={async (values) => {
@@ -240,7 +242,7 @@ interface RecommendationsProps {
 function Recommendations({ title, query, pid }: RecommendationsProps) {
   // todo: use vector search here
 
-  const products = useVectorSearch(['recommendations',query],query, 5);
+  const products = useVectorSearch(['recommendations', query], query, 5);
 
   if (products.isLoading || products.isError) {
     return (
