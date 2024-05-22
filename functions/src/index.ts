@@ -28,7 +28,7 @@ import { generate } from '@genkit-ai/ai';
 import { defineFlow, runFlow } from '@genkit-ai/flow';
 import { MessageData } from '@genkit-ai/ai/model';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { defineDotprompt } from '@genkit-ai/dotprompt';
+import { defineDotprompt, dotprompt } from '@genkit-ai/dotprompt';
 
 const functions = firebaseFunctions;
 
@@ -37,6 +37,7 @@ admin.initializeApp();
 const genkitConfig = configureGenkit({
   plugins: [
     firebase(),
+    dotprompt(),
     googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY }),
   ],
   logLevel: 'debug',
