@@ -22,17 +22,18 @@ import { configureGenkit, initializeGenkit } from '@genkit-ai/core';
 import googleAI, { geminiPro } from '@genkit-ai/googleai';
 import { onFlow } from "@genkit-ai/firebase/functions";
 import { firebaseAuth } from "@genkit-ai/firebase/auth";
-import { firebase } from '@genkit-ai/firebase';
+import { defineFirestoreRetriever, firebase } from '@genkit-ai/firebase';
 import * as z from "zod";
-import { generate } from '@genkit-ai/ai';
+import { generate, retrieve } from '@genkit-ai/ai';
 import { defineFlow, runFlow } from '@genkit-ai/flow';
 import { MessageData } from '@genkit-ai/ai/model';
-import { DocumentSnapshot } from 'firebase-admin/firestore';
+import { DocumentSnapshot, getFirestore } from 'firebase-admin/firestore';
 import { defineDotprompt, dotprompt } from '@genkit-ai/dotprompt';
+import { textEmbeddingGecko } from '@genkit-ai/vertexai';
 
 const functions = firebaseFunctions;
 
-admin.initializeApp();
+const app = admin.initializeApp();
 
 const genkitConfig = configureGenkit({
   plugins: [
@@ -132,6 +133,7 @@ exports.deleteUserData = functions.pubsub.schedule('every 24 hours').onRun(async
   ]);
 });
 
+// Evaluate review flow
 const history = new Map<string, MessageData[]>();
 const lastUserReview = new Map<string, string>();
 const lastGeminiEvaluation = new Map<string, string>();
@@ -223,6 +225,7 @@ const processReviewsPrompt = defineDotprompt(
   `
 );
 
+// Process reviews flow
 export const processReviews = defineFlow(
   {
     name: "processReviews",
@@ -263,3 +266,65 @@ exports.onReviewAdded = functions.firestore
       'reviews_summary': summarizedReview,
     });
   });
+
+// Chat response flow
+const chatResponsePrompt = defineDotprompt(
+  {
+    name: "chatResponsePrompt",
+    model: geminiPro,
+    input: {
+      schema: z.object({
+        context: z.string(),
+        question: z.string(),
+      }),
+    },
+    output: {
+      format: 'text',
+    },
+  },
+  ` 
+    You are a support agent for a coffee shop.
+    Answer the client's question and provide information about the product based on context below. 
+    Question: {question}
+    Context: {context}
+  `
+);
+
+const productsRetriever = defineFirestoreRetriever({
+  name: 'productsRetriever',
+  firestore: getFirestore(app),
+  collection: 'products',
+  contentField: 'description',
+  embedder: textEmbeddingGecko,
+  vectorField: 'embedding',
+});
+
+export const chatResponseFlow = defineFlow(
+  {
+    name: "chatResponse",
+    inputSchema: z.string(),
+    outputSchema: z.string(),
+  },
+  async (question) => {
+
+    // Retrieve embedded products from the database
+    const products = await retrieve({
+      retriever: productsRetriever,
+      query: '', // get all products
+      options: { k: 10 },
+    });
+
+    // Run the chat response flow
+    const llmResponse = await chatResponsePrompt.generate({
+      input: {
+        question: question,
+        context: products.map((product) => product.content).join('\n'),
+      },
+      config: {
+        temperature: 1,
+      },
+    });
+
+    return llmResponse.text();
+  }
+);
