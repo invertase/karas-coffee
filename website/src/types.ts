@@ -49,6 +49,7 @@ type ProductRecord = {
   name: string;
   role: null;
   tax_code: null;
+  reviews_summary?: string;
 };
 
 type ProductRecordMetadata = {

@@ -22,6 +22,7 @@ import { Alert } from './Alert';
 import { Skeleton } from './Skeleton';
 import { Stars } from './Stars';
 import { Tooltip } from './Tooltip';
+import { useUser } from '../hooks/useUser';
 
 export type ReviewCardProps = {
   review: Review;
@@ -29,10 +30,11 @@ export type ReviewCardProps = {
 
 export function ReviewCard({ review }: ReviewCardProps) {
   const images = useProductReviewImages(review.product_id, review.user.id);
+  const user = useUser();
 
   return (
     <div key={review.id}>
-      {!review.attribute_scores && <Alert type="success">Your comment is currently pending review.</Alert>}
+      {/* {!review.attribute_scores && <Alert type="success">Your comment is currently pending review.</Alert>} */}
       {review.attribute_scores && review.attribute_scores.TOXICITY > TOXICITY_THRESHOLD && (
         <Alert type="danger">Your review comment has been flagged as toxic & is not public.</Alert>
       )}
@@ -45,10 +47,16 @@ export function ReviewCard({ review }: ReviewCardProps) {
           />
         )}
         <div>
-          <h4 className="font-bold track w-64 truncate">{review.user.display_name}</h4>
+          <h4 className="font-bold track w-64 truncate">
+            {user.data?.uid == review.user.id ? 'You' : review.user.display_name}
+          </h4>
           <p className="text-sm text-gray-600">
             <Tooltip label={formatRelative(review.created_at, new Date())}>
-              <span>{formatDistance(review.created_at, new Date(), { addSuffix: true })}</span>
+              <span>
+                {formatDistance(review.created_at, new Date(), {
+                  addSuffix: true,
+                })}
+              </span>
             </Tooltip>
           </p>
         </div>

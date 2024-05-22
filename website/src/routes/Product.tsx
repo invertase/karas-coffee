@@ -25,7 +25,7 @@ import { Gallery } from '../components/Gallery';
 import { useCart } from '../hooks/useCart';
 import { useProduct } from '../hooks/useProduct';
 import { useReviewMutation } from '../hooks/useReviewMutation';
-import { useProductReview, useProductReviews } from '../hooks/useReviews';
+import { useProductReview, useProductReviews, useProductReviewSummary } from '../hooks/useReviews';
 import { ReviewCard, ReviewCardSkeleton } from '../components/ReviewCard';
 import { emptyArray } from '../utils';
 import { WriteReviewCard } from '../components/WriteReviewCard';
@@ -39,6 +39,8 @@ import { useFirestoreDocumentData } from '@react-query-firebase/firestore';
 import { collections } from '../firebase';
 import { doc } from 'firebase/firestore';
 import { Share } from '../components/Share';
+import GeminiIcon from '../components/GeminiIcon';
+import Markdown from 'react-markdown';
 export function Product() {
   const user = useUser();
   const { id } = useParams();
@@ -131,7 +133,7 @@ export function Product() {
       </section>
       <section className="max-w-xl mx-auto mt-24 px-4 lg:px-0">
         {!!user && <Review productData={product.data} />}
-        <ListReviews productId={product.data.id} />
+        <ListReviews productId={product.data.id} reviewSummary={product.data.reviews_summary} />
       </section>
     </>
   );
@@ -195,7 +197,7 @@ function Review({ productData }: { productData: ProductType }) {
   );
 }
 
-function ListReviews({ productId }: { productId: string }) {
+function ListReviews({ productId, reviewSummary }: { productId: string; reviewSummary?: string }) {
   const reviews = useProductReviews(productId);
   const user = useUser();
 
@@ -209,12 +211,12 @@ function ListReviews({ productId }: { productId: string }) {
 
   return (
     <div className="mt-12">
-      <h2 className="mb-4 text-3xl font-extrabold tracking-wide">Reviews</h2>
-      <Alert type="warning">
+      <h2 className="text-3xl font-extrabold tracking-wide">Reviews</h2>
+      {/* <Alert type="warning">
         {isAnonymous
           ? 'Please sign in to see your reviews.'
           : 'For this demo application, only your own reviews are currently visible.'}
-      </Alert>
+      </Alert> */}
       <div className="divide-y">
         {reviews.status === 'loading' && emptyArray(5).map((_, i) => wrapper(<ReviewCardSkeleton />, `${i}`))}
         {reviews.status === 'success' && (
@@ -223,6 +225,19 @@ function ListReviews({ productId }: { productId: string }) {
               <p className="mt-4 text-gray-600">
                 There are no reviews for this product, grab a coffee and be the first to write one!
               </p>
+            )}
+            {reviewSummary && (
+              <div className="mt-2 mb-4 flex flex-col">
+                <div className="flex items-center mt-2">
+                  <div className="bg-blue-100 rounded-full p-1">
+                    <GeminiIcon size={15} />
+                  </div>
+                  <p className="text-xs text-black font-semibold ml-2">Reviews summarized by Gemini</p>
+                </div>
+                <Markdown className="text-sm text-gray-600 mt-1 border-l-2 border-blue-100 ml-2.5 pl-5">
+                  {reviewSummary}
+                </Markdown>
+              </div>
             )}
             {reviews.data.map((review) => wrapper(<ReviewCard review={review} />, review.id))}
           </>

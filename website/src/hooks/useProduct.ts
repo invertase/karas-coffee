@@ -22,7 +22,7 @@ import { Product } from '../types';
 export function useProduct(id: string) {
   const collection = collections.products;
   const ref = doc(collection, id);
-
+  
   return useFirestoreDocumentData<Product>(['product', id], ref, {
     subscribe: true,
   });

@@ -26,20 +26,28 @@ import { useUser } from './useUser';
 
 export const TOXICITY_THRESHOLD = 0.6;
 
+export function useProductReviewSummary(productId: string): UseQueryResult<string> {
+  const productDoc = doc(firestore, 'products', productId);
+
+  return useFirestoreDocumentData(['product', productId, 'reviews_summary'], productDoc, {
+    subscribe: true,
+  });
+}
+
 export function useProductReviews(productId: string): UseQueryResult<Review[]> {
   const user = useUser();
   const collection = collections.productReviews(productId);
 
   const constraints: QueryConstraint[] = [];
 
-  constraints.push(orderBy('attribute_scores.TOXICITY'));
+  // constraints.push(orderBy('attribute_scores.TOXICITY'));
   constraints.push(orderBy('created_at', 'desc'));
 
   // Ensure the record has all the toxicity fields.
-  constraints.push(where(new FieldPath('attribute_scores', 'TOXICITY'), '<', TOXICITY_THRESHOLD));
+  // constraints.push(where(new FieldPath('attribute_scores', 'TOXICITY'), '<', TOXICITY_THRESHOLD));
 
   // For this example, only show the users own reviews.
-  constraints.push(where('user.id', '==', user.data?.uid ?? '-'));
+  // constraints.push(where('user.id', '==', user.data?.uid ?? '-'));
 
   return useFirestoreQueryData(
     ['reviews', productId],

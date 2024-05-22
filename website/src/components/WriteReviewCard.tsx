@@ -24,6 +24,8 @@ import cx from 'classnames';
 import { auth, functions } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import GeminiIcon from './GeminiIcon';
+import Markdown from 'react-markdown';
+import { Spinner } from './Spinner';
 
 type FormValues = {
   message: string;
@@ -68,7 +70,7 @@ export function WriteReviewCard({ productDescription, initialMessage, initialSta
         await onSubmit(values, helpers);
         helpers.resetForm();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
+      } catch (e) {
         // TODO(ehesp): switch on code to provide user friendly error messages.
         console.error(e);
         helpers.setStatus(e?.message || 'Something went wrong.');
@@ -163,24 +165,29 @@ export function WriteReviewCard({ productDescription, initialMessage, initialSta
             'border-red-500': isError,
           })}
         />
-
-        <div className="flex flex-col">
+        <div className="mt-1 mb-4 flex flex-col">
           <div className="flex items-center mt-2">
-            <GeminiIcon size={15} />
-            <p className="text-xs text-black font-semibold ml-1">Gemini</p>
+            <div className="bg-blue-100 rounded-full p-1">
+              <GeminiIcon size={15} />
+            </div>
+            <p className="text-xs text-black font-semibold ml-2">Write better reviews with Gemini</p>
           </div>
-          {geminiLoading ? (
-            <p className="text-sm text-gray-500 mt-1">Loading...</p>
-          ) : geminiError ? (
-            <p className="text-sm text-red-500 mt-1">{geminiError}</p>
-          ) : (
-            <p className="text-sm text-gray-500 mt-1">{geminiAdvice ?? 'Start typing to get Gemini advice...'}</p>
-          )}
+          <div className="text-sm text-gray-600 mt-1 border-l-2 border-blue-100 ml-2.5 pl-5 flex items-center">
+            {geminiLoading ? (
+              <>
+                <div className="mr-2">
+                  <Spinner size="sm" />
+                </div>
+                Loading...
+              </>
+            ) : (
+              <Markdown>{geminiAdvice ?? 'Start typing...'}</Markdown>
+            )}
+          </div>
         </div>
 
         {isError && <Error>{formik.errors.message ?? 'An error occurred'}</Error>}
       </div>
-      {/* <span>Start writing to get Gemini advice</span> */}
       <div className="flex items-center">
         <div className="flex-grow">
           <Label id="stars">Rate this product:</Label>
