@@ -20,26 +20,31 @@ import admin from 'firebase-admin';
 import * as firebase_tools from 'firebase-tools';
 import { configureGenkit, initializeGenkit } from '@genkit-ai/core';
 import googleAI, { geminiPro } from '@genkit-ai/googleai';
-import { onFlow } from '@genkit-ai/firebase/functions';
-import { firebaseAuth } from '@genkit-ai/firebase/auth';
+import { onFlow } from "@genkit-ai/firebase/functions";
+import { firebaseAuth } from "@genkit-ai/firebase/auth";
 import { firebase } from '@genkit-ai/firebase';
-import * as z from 'zod';
+import * as z from "zod";
 import { generate } from '@genkit-ai/ai';
 import { defineFlow, runFlow } from '@genkit-ai/flow';
 import { MessageData } from '@genkit-ai/ai/model';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
+import { defineDotprompt } from '@genkit-ai/dotprompt';
 
 const functions = firebaseFunctions;
 
 admin.initializeApp();
 
 const genkitConfig = configureGenkit({
-  plugins: [firebase(), googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY })],
+  plugins: [
+    firebase(),
+    googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY }),
+  ],
   logLevel: 'debug',
   enableTracingAndMetrics: true,
 });
 
 initializeGenkit(genkitConfig);
+
 
 // Returns a list of all product ids in the database
 function getProductIds(): Promise<string[]> {
@@ -130,31 +135,27 @@ const history = new Map<string, MessageData[]>();
 const lastUserReview = new Map<string, string>();
 const lastGeminiEvaluation = new Map<string, string>();
 
-const evaluateReviewFlowPrompt = (
-  review: string,
-  lastReview: string,
-  lastEvaluation: string,
-  context: string,
-): string => `
-Objective: You are a sophisticated AI that evaluates the completeness and informativeness of a coffee shop product review.
-Always be polite, keep the tone conversational and keep your responses short.
-Do not use brackets or mention variable names defined above.
-Never give your opinion on the review quality. Always ask questions or acknowledge the user's effort.
-Most recently, you evaluated user's review (${lastReview}) as follows: (${lastEvaluation}).
-Make sure to not ask the same questions and move on if it gets repetitive.
+const evaluateReviewFlowPrompt = (review: string, lastReview: string, lastEvaluation: string, context: string): string =>
+  `
+    Objective: You are a sophisticated AI that evaluates the completeness and informativeness of a coffee shop product review.
+    Always be polite, keep the tone conversational and keep your responses short.
+    Do not use brackets or mention variable names defined above.
+    Never give your opinion on the review quality. Always ask questions or acknowledge the user's effort.
+    Most recently, you evaluated user's review (${lastReview}) as follows: (${lastEvaluation}).
+    Make sure to not ask the same questions and move on if it gets repetitive.
 
-Product description: ${context}
-Review: ${review}
+    Product description: ${context}
+    Review: ${review}
 
-Follow these steps to evaluate the review:
-1. If the review is long, detailed, and informative, or if user says they have expressed all their thoughts and have nothing else to say, acknowledge the user's effort with a "Thank you for your review" message and skip other steps.
-2. Evaluate the completeness of the review. Make sure all aspects of product description are covered. Never tell the user your evaluation.
-3. If the review needs improvement, ask one clarifying question. Make sure to ask only one question at a time.
-`;
+    Follow these steps to evaluate the review:
+    1. If the review is long, detailed, and informative, or if user says they have expressed all their thoughts and have nothing else to say, acknowledge the user's effort with a "Thank you for your review" message and skip other steps.
+    2. Evaluate the completeness of the review. Make sure all aspects of product description are covered. Never tell the user your evaluation.
+    3. If the review needs improvement, ask one clarifying question. Make sure to ask only one question at a time.
+  `;
 
 export const evaluateReviewFlow = onFlow(
   {
-    name: 'evaluateReviewFlow',
+    name: "evaluateReviewFlow",
     inputSchema: z.object({
       reviewSoFar: z.string(),
       context: z.string(),
@@ -164,7 +165,7 @@ export const evaluateReviewFlow = onFlow(
     httpsOptions: { cors: true },
     authPolicy: firebaseAuth((user) => {
       if (!user) {
-        throw new Error('Must be called by a user.');
+        throw new Error("Must be called by a user.");
       }
     }),
   },
@@ -184,12 +185,12 @@ export const evaluateReviewFlow = onFlow(
 
     historySoFar.push({
       content: [{ text: input.reviewSoFar }],
-      role: 'user',
+      role: "user",
     });
 
     historySoFar.push({
       content: [{ text: llmResponse.text() }],
-      role: 'model',
+      role: "model",
     });
 
     history.set(input.userId, historySoFar);
@@ -197,30 +198,48 @@ export const evaluateReviewFlow = onFlow(
     lastGeminiEvaluation.set(input.userId, llmResponse.text());
 
     return llmResponse.text();
+  }
+);
+
+const processReviewsPrompt = defineDotprompt(
+  {
+    name: "processReviewPrompt",
+    model: geminiPro,
+    input: {
+      schema: z.object({
+        reviews: z.string(),
+      }),
+    },
+    output: {
+      format: 'text',
+    },
   },
+  ` 
+    Summarize the following reviews and highlight key aspects of the feedback to be useful to buyers. 
+    Do not include the reviews in the summary. You must never use markdown, return only basic string. 
+    Keep the summary concise and informative. 
+    Reviews: {reviews}
+  `
 );
 
 export const processReviews = defineFlow(
   {
-    name: 'processReviews',
+    name: "processReviews",
     inputSchema: z.array(z.string()),
     outputSchema: z.string(),
   },
   async (reviews) => {
-    const llmResponse = await generate({
-      prompt: `Summarize the following reviews and highlight key aspects of the feedback to be useful to buyers. 
-         Do not include the reviews in the summary. You must never use markdown, return only basic string. 
-         Keep the summary concise and informative. 
-         Reviews: ${reviews.join('\n')}
-         `,
-      model: geminiPro,
+    const llmResponse = await processReviewsPrompt.generate({
+      input: {
+        reviews: reviews.join('\n'),
+      },
       config: {
         temperature: 1,
       },
     });
 
     return llmResponse.text();
-  },
+  }
 );
 
 exports.onReviewAdded = functions.firestore
@@ -229,15 +248,17 @@ exports.onReviewAdded = functions.firestore
     const productId = context.params.productId;
 
     // Fetch all reviews for the product
-    const reviewsSnapshot = await admin.firestore().collection(`products/${productId}/reviews`).get();
+    const reviewsSnapshot = await admin.firestore()
+      .collection(`products/${productId}/reviews`)
+      .get();
 
-    const reviews = reviewsSnapshot.docs.map((doc) => doc.data().message);
+    const reviews = reviewsSnapshot.docs.map(doc => doc.data().message);
 
     // Run the processReviews flow
     const summarizedReview = await runFlow(processReviews, reviews);
 
     // Update product doc with the summarized review
     await admin.firestore().doc(`products/${productId}`).update({
-      reviews_summary: summarizedReview,
+      'reviews_summary': summarizedReview,
     });
   });
