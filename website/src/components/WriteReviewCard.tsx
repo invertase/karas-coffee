@@ -70,7 +70,7 @@ export function WriteReviewCard({ productDescription, initialMessage, initialSta
         await onSubmit(values, helpers);
         helpers.resetForm();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e) {
+      } catch (e: any) {
         // TODO(ehesp): switch on code to provide user friendly error messages.
         console.error(e);
         helpers.setStatus(e?.message || 'Something went wrong.');
